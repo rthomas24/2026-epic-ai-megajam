@@ -221,6 +221,11 @@ namespace TDFlightHUD
 	};
 
 	float Clamp01(float V) { return FMath::IsFinite(V) ? FMath::Clamp(V, 0.f, 1.f) : 0.f; }
+	/** The squad-row layout check (TD.UI.Layout): every element's rectangle, by card. */
+	struct FCardRect { int32 Card = 0; FName Name; FBox2D Box; };
+	inline TArray<FCardRect>& CardRects() { static TArray<FCardRect> R; return R; }
+	float SquadCardHeight(bool bBig, float K, float F);
+	float SquadFlagHeight(float K, float F);
 }
 
 // ------------------------------------------------------------------------------------------ data
@@ -676,11 +681,18 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 	const float PillHalf = ObjectiveExpandedWidth * .5f + 14.f;
 	const float PillBottom = SafeY + FMath::Lerp(ObjectiveHeight, ObjectiveExpandedHeight, View.ObjectiveExpand) + 14.f;
 	const bool bPill = !View.Objective.IsEmpty();
-	auto AvoidStrip = [StripRight, StripTop, PillHalf, PillBottom, bPill](FVector2D Pos)
+	// With the #160 squad panel the flag tabs sit above the cards: the arrows keep 16 px clear of them too (Lead's
+	// sweep: a chevron sat just above the flags), and of the SHADOW chip at the row's right end (about 220 px).
+	const float FlagTop = View.bSquadPanel ? StripTop - TDFlightHUD::SquadFlagHeight(View.PanelK, View.PanelFont) - 6.f * View.PanelK : StripTop;
+	const float AvoidRight = View.bSquadPanel ? StripRight + 220.f * View.PanelK : StripRight;
+	View.RowFlagTop = FlagTop;
+	View.RowRight = AvoidRight;
+	auto AvoidStrip = [AvoidRight, FlagTop, PillHalf, PillBottom, bPill](FVector2D Pos)
 	{
-		if (StripRight > 0.f && Pos.X <= StripRight + 14.f && Pos.Y >= StripTop - 14.f)
+		// The arrows are drawn up to about 12 px around their point: 16 px clear of the flags means 28 from the point.
+		if (AvoidRight > 0.f && Pos.X <= AvoidRight + 14.f && Pos.Y >= FlagTop - 28.f)
 		{
-			Pos.Y = StripTop - 16.f;
+			Pos.Y = FlagTop - 28.f;
 		}
 		if (bPill && FMath::Abs(Pos.X - CenterX) <= PillHalf && Pos.Y <= PillBottom)
 		{
@@ -1404,12 +1416,23 @@ void UTDFlightHUDWidget::LayoutChips()
 		{
 			FSquadCard& Card = View.Cards[static_cast<int32>(Chip.Ship)];
 			const float G = FMath::InterpEaseOut(0.f, 1.f, Card.Grow, 2.f);
-			Card.Size = FVector2D(FMath::Lerp(WingCardW, FlownCardW, G), FMath::Lerp(WingCardH, FlownCardH, G)) * K;
+			const float F = View.PanelFont;
+			Card.Size = FVector2D(FMath::Lerp(WingCardW, FlownCardW, G) * K,
+				FMath::Lerp(TDFlightHUD::SquadCardHeight(false, K, F), TDFlightHUD::SquadCardHeight(true, K, F), G));
 			Card.Pos = FVector2D(X, Bottom - Card.Size.Y);
 			Chip.Pos = Card.Pos;
 			Chip.Size = Card.Size;
 			X += Card.Size.X + CardGap * K;
 		}
+		// The subtitle slot ends a clear 12 px above the tallest card's flag row (Ryan: the subtitle sat on the Kato card).
+		float CardsTop = Bottom;
+		for (const FChip& Chip : View.Chips)
+		{
+			CardsTop = FMath::Min(CardsTop, float(Chip.Pos.Y));
+		}
+		View.SubtitleBottom = FMath::Min(View.SubtitleBottom, CardsTop - TDFlightHUD::SquadFlagHeight(K, View.PanelFont) - 6.f * K - 12.f);
+		// The prompt lane and the hint card end a clear 10 px above the flag row (at 720p the taller cards reached them).
+		View.LaneBottom = FMath::Min(890.f, CardsTop - TDFlightHUD::SquadFlagHeight(K, View.PanelFont) - 6.f * K - 10.f);
 		return;
 	}
 	for (FChip& Chip : View.Chips)
@@ -1440,6 +1463,71 @@ static FAutoConsoleCommandWithWorld CmdTDUICost(TEXT("TD.UI.Cost"), TEXT("TD.UI.
 			P.Frames, S.AverageMs(), S.WorstMs(), P.AverageMs(), P.WorstMs(), S.AverageMs() + P.AverageMs());
 		HUD->SampleCost = FTDHUDCost();
 		HUD->PaintCost = FTDHUDCost();
+	}));
+#endif
+
+#if !UE_BUILD_SHIPPING
+// TD.UI.Layout: the squad row's rectangles from the last paint, and every problem: an element outside its card, two
+// elements of a card that intersect, cards that touch, a flag tab on a card, the subtitle or the radar on the row.
+static FAutoConsoleCommandWithWorld CmdTDUILayout(TEXT("TD.UI.Layout"), TEXT("TD.UI.Layout: log the squad row's element rectangles and flag overlaps (Ryan's HUD review)."),
+	FConsoleCommandWithWorldDelegate::CreateLambda([](UWorld* World)
+	{
+		const UTDUIHostSubsystem* Host = UTDUIHostSubsystem::Get(World);
+		const UTDFlightHUDWidget* HUD = Host ? Cast<UTDFlightHUDWidget>(Host->GetSpaceHUD()) : nullptr;
+		const TArray<TDFlightHUD::FCardRect>& R = TDFlightHUD::CardRects();
+		int32 Problems = 0;
+		auto Str = [](const FBox2D& B) { return FString::Printf(TEXT("(%.0f,%.0f %.0fx%.0f)"), B.Min.X, B.Min.Y, B.GetSize().X, B.GetSize().Y); };
+		auto Overlap = [](const FBox2D& A, const FBox2D& B) { return A.Min.X < B.Max.X - .5f && B.Min.X < A.Max.X - .5f && A.Min.Y < B.Max.Y - .5f && B.Min.Y < A.Max.Y - .5f; };
+		TMap<int32, FBox2D> Cards;
+		for (const TDFlightHUD::FCardRect& E : R)
+		{
+			if (E.Name == TEXT("card")) { Cards.Add(E.Card, E.Box); }
+			UE_LOG(LogTemp, Display, TEXT("TD.UI.Layout card %d %-12s %s"), E.Card, *E.Name.ToString(), *Str(E.Box));
+		}
+		for (int32 i = 0; i < R.Num(); ++i)
+		{
+			const TDFlightHUD::FCardRect& E = R[i];
+			const FBox2D* Card = Cards.Find(E.Card);
+			const bool bFlag = E.Name == TEXT("flag"), bCard = E.Name == TEXT("card");
+			if (!bCard && !bFlag && Card && !(Card->IsInside(E.Box.Min) && Card->IsInside(E.Box.Max)))
+			{
+				++Problems;
+				UE_LOG(LogTemp, Warning, TEXT("TD.UI.Layout PROBLEM card %d: %s %s is not inside its card %s"), E.Card, *E.Name.ToString(), *Str(E.Box), *Str(*Card));
+			}
+			for (int32 j = i + 1; j < R.Num(); ++j)
+			{
+				const TDFlightHUD::FCardRect& O = R[j];
+				const bool bOCard = O.Name == TEXT("card"), bOFlag = O.Name == TEXT("flag");
+				const bool bCheck = (E.Card == O.Card && !bCard && !bOCard) || (bCard && bOCard) || (bFlag && bOCard) || (bCard && bOFlag) || (bFlag && bOFlag);
+				if (bCheck && Overlap(E.Box, O.Box))
+				{
+					++Problems;
+					UE_LOG(LogTemp, Warning, TEXT("TD.UI.Layout PROBLEM: card %d %s %s overlaps card %d %s %s"), E.Card, *E.Name.ToString(), *Str(E.Box), O.Card, *O.Name.ToString(), *Str(O.Box));
+				}
+			}
+		}
+		if (HUD)
+		{
+			for (const TPair<FName, FBox2D>& B : HUD->LastBoxes)
+			{
+				// Everything the HUD drew this frame except the row itself; the edge arrows must keep 16 px clear.
+				if (B.Key == TEXT("chip") || B.Key == TEXT("squad") || B.Key == TEXT("shadow"))
+				{
+					continue;
+				}
+				const bool bEdge = B.Key == TEXT("edge") || B.Key == TEXT("missile_edge") || B.Key == TEXT("waypoint_edge") || B.Key == TEXT("wing") || B.Key == TEXT("edge_label");
+				const FBox2D Test = bEdge ? B.Value.ExpandBy(16.f) : B.Value;
+				for (const TDFlightHUD::FCardRect& E : R)
+				{
+					if ((E.Name == TEXT("card") || E.Name == TEXT("flag")) && Overlap(Test, E.Box))
+					{
+						++Problems;
+						UE_LOG(LogTemp, Warning, TEXT("TD.UI.Layout PROBLEM: %s %s overlaps card %d %s %s"), *B.Key.ToString(), *Str(B.Value), E.Card, *E.Name.ToString(), *Str(E.Box));
+					}
+				}
+			}
+		}
+		UE_LOG(LogTemp, Display, TEXT("TD.UI.Layout: %d rectangles, %d problem(s)"), R.Num(), Problems);
 	}));
 #endif
 
@@ -1476,6 +1564,21 @@ void UTDFlightHUDWidget::UpdateSquadCards(float Dt)
 		}
 	}
 	View.bSquadPanel = CVarTDUIMinimalHUD.GetValueOnGameThread() == 0 && !bMinimalSetting;
+	// SHADOW ON / OFF: ATDSquadManager::IsShadowMode (the wingman builder's, #201), by name: -1 until it exists.
+	View.ShadowMode = -1;
+	if (UObject* Squad = Source.Get())
+	{
+		if (UFunction* F = Squad->FindFunction(TEXT("IsShadowMode")); F && F->ParmsSize > 0)
+		{
+			uint8* Buf = static_cast<uint8*>(FMemory_Alloca(F->ParmsSize));
+			FMemory::Memzero(Buf, F->ParmsSize);
+			Squad->ProcessEvent(F, Buf);
+			if (const FBoolProperty* Ret = CastField<FBoolProperty>(F->GetReturnProperty()))
+			{
+				View.ShadowMode = Ret->GetPropertyValue_InContainer(Buf) ? 1 : 0;
+			}
+		}
+	}
 	const float ForcedScale = CVarTDUISubtitleScale.GetValueOnGameThread();
 	View.SubtitleScale = FMath::Clamp(ForcedScale > 0.f ? ForcedScale : UTDSettingsSubsystem::GetSubtitleScale(this), .5f, 2.f);
 	// Below 900 px of height the design frame would shrink the text under its 1080 size: the cards go to 85% and the
@@ -1556,12 +1659,16 @@ void UTDFlightHUDWidget::UpdateSquadCards(float Dt)
 		}
 	}
 	// The subtitle slot ends above the panel's flag row (Concept A: y 858..890 at 1080p).
-	View.SubtitleBottom = View.bSquadPanel ? 1080.f - SafeY - FlownCardH * View.PanelK - 28.f * View.PanelK - 8.f : SubtitleY + 64.f;
+	View.SubtitleBottom = View.bSquadPanel ? 1080.f - SafeY : SubtitleY + 64.f; // with the panel: LayoutChips sets it above the row
+	if (!View.bSquadPanel)
+	{
+		View.LaneBottom = 890.f;
+	}
 	// A prompt, a hint card or the hyperdrive block is in the lower lane (y 830..890): the subtitle block (up to three
 	// Large lines) sits above it, never over it, the squad panel or the radar.
 	if (View.bSquadPanel && View.Lane != ELane::None)
 	{
-		View.SubtitleBottom = FMath::Min(View.SubtitleBottom, 822.f);
+		View.SubtitleBottom = FMath::Min(View.SubtitleBottom, View.LaneBottom - 68.f); // above the lane's tallest plate (60) + 8
 	}
 }
 
@@ -1668,15 +1775,55 @@ namespace TDFlightHUD
 	}
 
 	/** One card. All sizes are the 1080p design values times K (cards) or F (text). */
+	/** Slate draws text from its top; a line is about 1.36 x its size tall and its visual centre 0.68 x below the top. */
+	static float TextH(float Px) { return Px * 1.36f; }
+	static float TextW(const FPaint& P, const FString& S, int32 Px, const ANSICHAR* Face, int32 Tracking)
+	{
+		const float W = P.Measure(S, P.Font(Face, Px, Tracking));
+		return W > 0.f ? W : S.Len() * Px * .66f; // headless: no font measure, an estimate
+	}
+
+	static void NoteRect(int32 Card, const TCHAR* Name, float X, float Y, float W, float H)
+	{
+		CardRects().Add({ Card, FName(Name), FBox2D(FVector2D(X, Y), FVector2D(X + W, Y + H)) });
+	}
+
+	/** Font sizes on the cards (1080p pixels; times F below 900 real px). */
+	static constexpr float NamePx = 18.f, ShipPx = 12.f, WingNamePx = 14.f, WingShipPx = 10.f, NumPx = 13.f, FlagTagPx = 11.f, PowerWordPx = 10.f;
+
+	/** The height a card needs for what it holds (the 1080p card is a minimum; at 720p the text keeps its size). */
+	float SquadCardHeight(bool bBig, float K, float F)
+	{
+		if (bBig)
+		{
+			const float Names = TextH(NamePx * F) + TextH(ShipPx * F) * .9f;
+			const float Rows = TextH(NumPx * F) * 2.f + 2.f * K;
+			return FMath::Max(100.f * K, 12.f * K * 2.f + FMath::Max(24.f * K, Names) + 6.f * K + Rows);
+		}
+		const float Names = TextH(WingNamePx * F) + TextH(WingShipPx * F) * .9f;
+		return FMath::Max(76.f * K, 10.f * K * 2.f + FMath::Max(20.f * K, Names) + 6.f * K + 18.f * K);
+	}
+
+	/** The flag tab height and its gap above the card (shared with the row layout and the subtitle slot). */
+	float SquadFlagHeight(float K, float F) { return FMath::Max(20.f * K, TextH(FlagTagPx * F) + 6.f * K); }
+
+	/**
+	 * One card, laid out from measured rectangles: a header row (keycap, ship glyph, pilot / ship names) centred on one
+	 * line; on the flown card a reserved right column (power ring, its word, the ability ring) on one vertical axis; the
+	 * SHD / HUL rows at the bottom ending before that column; flags as tabs above the card with a fixed gap. Every
+	 * rectangle is recorded for TD.UI.Layout.
+	 */
 	static void SquadCard(const FPaint& P, const UTDFlightHUDWidget::FSquadCard& Card, float K, float F, float Time, const FString& PowerGlyph, const FString& AbilityGlyph)
 	{
 		const float X = Card.Pos.X, Y = Card.Pos.Y, W = Card.Size.X, H = Card.Size.Y;
+		const int32 CardId = static_cast<int32>(Card.Ship);
 		const bool bBig = Card.Grow > .5f;
 		const FLinearColor Ship = PanelShip(Card.Ship);
 		const FLinearColor Ink = FTDUIPalette::Ink(), Muted = FTDUIPalette::Muted();
 		// Cloaked: the card's contents drop to 60% (the concept), with the CLOAKED flag above it.
 		const float O = (Card.bAlive ? 1.f : .8f) * (Card.bCloaked ? .6f : 1.f);
 		auto Sz = [F](float Px) { return FMath::RoundToInt(Px * F); };
+		NoteRect(CardId, TEXT("card"), X, Y, W, H);
 
 		// Plate (dark red when down), the cut top-right corner, the border and the ship-colour top bar.
 		const float Cut = 14.f * K;
@@ -1692,107 +1839,116 @@ namespace TDFlightHUD
 			: Card.bTrouble ? T::Warning().CopyWithNewOpacity(Pulse1Hz)
 			: bBig ? Ship.CopyWithNewOpacity(.95f) : Ink.CopyWithNewOpacity(.22f);
 		P.Poly(FVector2D(X, Y), { { 0, 0 }, { W - Cut, 0 }, { W, Cut }, { W, H }, { 0, H }, { 0, 0 } }, Border, Card.bCritical ? 2.5f : bBig || Card.bTrouble ? 1.5f : 1.f);
-		if (bBig)
-		{
-			P.Box(X, Y - 2.f, W - Cut, 7.f, Ship.CopyWithNewOpacity(.22f)); // glow
-		}
 		P.Box(X, Y, W - Cut, bBig ? 3.f : 2.f, Ship.CopyWithNewOpacity(bBig ? 1.f : .7f));
 
-		// Keycap, ship glyph, names.
-		const float Pad = (bBig ? 12.f : 10.f) * K;
-		const float Key = (bBig ? 24.f : 20.f) * K;
-		float PenX = X + Pad;
-		const float RowY = Y + Pad;
-		if (!Card.Key.IsEmpty())
-		{
-			P.Outline(PenX, RowY, Key, Key, 4.f * K, 1.2f, Ink.CopyWithNewOpacity(.7f * O));
-			P.Words(PenX + Key * .5f, RowY + Key * .5f - Sz(bBig ? 15 : 13) * .68f, Card.Key, Sz(bBig ? 15 : 13), Ink.CopyWithNewOpacity(O), "Bold", .5f, 0);
-			PenX += Key + 8.f * K;
-		}
-		const float Icon = (bBig ? 22.f : 18.f) * K;
-		const FVector2D IconC(PenX + Icon * .5f, RowY + Key * .5f);
-		P.ShipIcon(Card.Ship, IconC, Icon, (Card.bAlive ? Ship : Muted).CopyWithNewOpacity(O));
-		if (!Card.bAlive)
-		{
-			P.Line(IconC + FVector2D(-Icon, -Icon) * .5f, IconC + FVector2D(Icon, Icon) * .5f, T::Danger(), 2.f);
-			P.Line(IconC + FVector2D(-Icon, Icon) * .5f, IconC + FVector2D(Icon, -Icon) * .5f, T::Danger(), 2.f);
-		}
-		PenX += Icon + 10.f * K;
 		static const FString Pilots[3] = { PilotName(ETDShipId::Rift), PilotName(ETDShipId::Lancer), PilotName(ETDShipId::Bastion) };
+		static const FString Ships[3] = { ShipName(ETDShipId::Rift), ShipName(ETDShipId::Lancer), ShipName(ETDShipId::Bastion) };
 		static const FString Powers[3] = { PowerShortName(ETDShipId::Rift), PowerShortName(ETDShipId::Lancer), PowerShortName(ETDShipId::Bastion) };
 		const int32 ShipIndex = FMath::Clamp(static_cast<int32>(Card.Ship), 0, 2);
-		float NameEndX = PenX;
+
+		const float Pad = (bBig ? 12.f : 10.f) * K;
+		const float Left = X + Pad, Right = X + W - Pad, Top = Y + Pad, Bottom = Y + H - Pad;
+
+		// ---- the right column: the flown card's power block, a wingman's power dot and ability mark
+		float ContentRight = Right;
 		if (bBig)
 		{
-			P.Words(PenX, Y + 8.f * K, Pilots[ShipIndex], Sz(19), Ink.CopyWithNewOpacity(O), "Bold", 0.f, 80);
-			// The ship name alone (ship + role ran under the Q ring at 720p, T7's frame).
-			static const FString BigShips[3] = { ShipName(ETDShipId::Rift), ShipName(ETDShipId::Lancer), ShipName(ETDShipId::Bastion) };
-			P.Words(PenX, Y + 8.f * K + Sz(19) * 1.3f, BigShips[ShipIndex], Sz(12), Ship.CopyWithNewOpacity(.9f * O), "Bold", 0.f, 80);
-			NameEndX = PenX + Sz(19) * 3.6f;
-		}
-		else
-		{
-			// Pilot and, under it, the ship (the player switches ships: Nick's Lead, #160).
-			static const FString Ships[3] = { ShipName(ETDShipId::Rift), ShipName(ETDShipId::Lancer), ShipName(ETDShipId::Bastion) };
-			P.Words(PenX, RowY - 3.f * K, Pilots[ShipIndex], Sz(14), Ink.CopyWithNewOpacity(O), "Bold", 0.f, 80);
-			P.Words(PenX, RowY - 3.f * K + Sz(14) * 1.22f, Ships[ShipIndex], Sz(10), Ship.CopyWithNewOpacity(.9f * O), "Bold", 0.f, 80);
-			NameEndX = PenX + Sz(14) * 3.6f;
-		}
-		// Trouble badge after the name: a "!" triangle (the border pulses amber too).
-		if (Card.bTrouble)
-		{
-			const FVector2D B(NameEndX + 12.f * K, RowY + Key * .5f);
-			P.Poly(B, { { 0, -8 }, { 8, 6 }, { -8, 6 }, { 0, -8 } }, T::Warning(), 2.f, K);
-			P.Words(B.X, B.Y - Sz(11) * .55f, TEXT("!"), Sz(11), T::Warning(), "Bold", .5f, 0);
+			const float R = 15.f * K, Glow = 2.f, R2 = 10.f * K;
+			const int32 WordPx = Sz(PowerWordPx);
+			const float WordW = TextW(P, Powers[ShipIndex], WordPx, "Bold", 60);
+			const float ColW = FMath::Max(2.f * (R + Glow), WordW) + 4.f * K;
+			const float ColX = Right - ColW, Cx = ColX + ColW * .5f;
+			const float RingCy = Top + 2.f + R + Glow;
+			PowerRing(P, FVector2D(Cx, RingCy), R, Card.Power01, Card.bPowerActive, Ship, PowerGlyph, Sz(13), O);
+			NoteRect(CardId, TEXT("power_ring"), Cx - R - Glow, RingCy - R - Glow, 2.f * (R + Glow), 2.f * (R + Glow));
+			const float WordY = RingCy + R + Glow + 2.f * K;
+			P.Words(Cx, WordY, Powers[ShipIndex], WordPx, Ship.CopyWithNewOpacity(O), "Bold", .5f, 60);
+			NoteRect(CardId, TEXT("power_word"), Cx - WordW * .5f, WordY, WordW, TextH(WordPx));
+			const float AbCy = FMath::Min(WordY + TextH(WordPx) + 3.f * K + R2 + 2.f, Bottom - R2 - 2.f);
+			AbilityRing(P, FVector2D(Cx, AbCy), R2, Card.Ability == ETDAbilityId::None, Card.Ability01, Card.bAbilityActive,
+				Card.AbilitySecondsText.IsEmpty() || Card.bAbilityActive ? AbilityGlyph : Card.AbilitySecondsText, Sz(10), O, Time);
+			NoteRect(CardId, TEXT("ability_ring"), Cx - R2 - 2.f, AbCy - R2 - 2.f, 2.f * (R2 + 2.f), 2.f * (R2 + 2.f));
+			ContentRight = ColX - 8.f * K;
 		}
 
-		// Signature power and ability, right side.
-		if (bBig)
+		// ---- the header row: keycap, ship glyph, names, all centred on one line
+		const float KeyS = (bBig ? 24.f : 20.f) * K, IconS = (bBig ? 22.f : 18.f) * K;
+		const int32 NamePxNow = Sz(bBig ? NamePx : WingNamePx), ShipPxNow = Sz(bBig ? ShipPx : WingShipPx);
+		const float NamesH = TextH(NamePxNow) + TextH(ShipPxNow) * .9f;
+		const float RowH = FMath::Max3(KeyS, IconS, NamesH);
+		const float RowC = Top + RowH * .5f;
+		float PenX = Left;
+		if (!Card.Key.IsEmpty())
 		{
-			const FVector2D PowerAt(X + W - 34.f * K, Y + 28.f * K);
-			PowerRing(P, PowerAt, 16.f * K, Card.Power01, Card.bPowerActive, Ship, PowerGlyph, Sz(13), O);
-			P.Words(PowerAt.X, PowerAt.Y + 18.f * K, Powers[ShipIndex], Sz(10), Ship.CopyWithNewOpacity(O), "Bold", .5f, 60);
-			AbilityRing(P, FVector2D(X + W - 34.f * K, Y + H - 19.f * K), 12.f * K, Card.Ability == ETDAbilityId::None, Card.Ability01, Card.bAbilityActive,
-				Card.AbilitySecondsText.IsEmpty() || Card.bAbilityActive ? AbilityGlyph : Card.AbilitySecondsText, Sz(11), O, Time);
+			const int32 KeyPx = Sz(bBig ? 15 : 13);
+			P.Outline(PenX, RowC - KeyS * .5f, KeyS, KeyS, 4.f * K, 1.2f, Ink.CopyWithNewOpacity(.7f * O));
+			P.Words(PenX + KeyS * .5f, RowC - KeyPx * .68f, Card.Key, KeyPx, Ink.CopyWithNewOpacity(O), "Bold", .5f, 0);
+			NoteRect(CardId, TEXT("keycap"), PenX, RowC - KeyS * .5f, KeyS, KeyS);
+			PenX += KeyS + 8.f * K;
 		}
-		else
+		const FVector2D IconC(PenX + IconS * .5f, RowC);
+		P.ShipIcon(Card.Ship, IconC, IconS, (Card.bAlive ? Ship : Muted).CopyWithNewOpacity(O));
+		NoteRect(CardId, TEXT("glyph"), PenX, RowC - IconS * .5f, IconS, IconS);
+		if (!Card.bAlive)
 		{
-			const FVector2D PowerAt(X + W - 50.f * K, RowY + Key * .5f);
+			P.Line(IconC + FVector2D(-IconS, -IconS) * .5f, IconC + FVector2D(IconS, IconS) * .5f, T::Danger(), 2.f);
+			P.Line(IconC + FVector2D(-IconS, IconS) * .5f, IconC + FVector2D(IconS, -IconS) * .5f, T::Danger(), 2.f);
+		}
+		PenX += IconS + 10.f * K;
+		const float NamesTop = RowC - NamesH * .5f;
+		P.Words(PenX, NamesTop, Pilots[ShipIndex], NamePxNow, Ink.CopyWithNewOpacity(O), "Bold", 0.f, 80);
+		const float ShipY = NamesTop + TextH(NamePxNow) * .95f;
+		P.Words(PenX, ShipY, Ships[ShipIndex], ShipPxNow, Ship.CopyWithNewOpacity(.9f * O), "Bold", 0.f, 80);
+		const float NameW = FMath::Max(TextW(P, Pilots[ShipIndex], NamePxNow, "Bold", 80), TextW(P, Ships[ShipIndex], ShipPxNow, "Bold", 80));
+		NoteRect(CardId, TEXT("names"), PenX, NamesTop, NameW, NamesH);
+		float RowRight = PenX + NameW;
+
+		// A wingman's right side: the power dot and the ability mark, centred on the header line, inside the padding.
+		if (!bBig)
+		{
+			const float R2 = 9.f * K, Dot = 8.f * K;
+			const FVector2D AbAt(Right - R2 - 2.f, RowC);
+			const FVector2D PowerAt(AbAt.X - R2 - 2.f - 8.f * K - Dot - 2.f, RowC);
 			if (Card.Power01 >= .999f)
 			{
-				P.Plate(PowerAt.X - 10.f * K, PowerAt.Y - 10.f * K, 20.f * K, 20.f * K, 10.f * K, Ship.CopyWithNewOpacity(.25f * O)); // glow
-				P.Plate(PowerAt.X - 8.f * K, PowerAt.Y - 8.f * K, 16.f * K, 16.f * K, 8.f * K, Ship.CopyWithNewOpacity(O));
+				P.Plate(PowerAt.X - Dot - 2.f, PowerAt.Y - Dot - 2.f, 2.f * (Dot + 2.f), 2.f * (Dot + 2.f), Dot + 2.f, Ship.CopyWithNewOpacity(.25f * O)); // glow
+				P.Plate(PowerAt.X - Dot, PowerAt.Y - Dot, 2.f * Dot, 2.f * Dot, Dot, Ship.CopyWithNewOpacity(O));
 			}
 			else
 			{
-				P.Arc(PowerAt, 7.f * K, 1.f, Muted.CopyWithNewOpacity(.3f * O), 2.f);
-				P.Arc(PowerAt, 7.f * K, Card.Power01, Ship.CopyWithNewOpacity(O), 2.f, -PI * .5f);
+				P.Arc(PowerAt, Dot - 1.f, 1.f, Muted.CopyWithNewOpacity(.3f * O), 2.f);
+				P.Arc(PowerAt, Dot - 1.f, Card.Power01, Ship.CopyWithNewOpacity(O), 2.f, -PI * .5f);
 			}
-			// The ability on a wingman card: the same four shapes at 9 px radius (padlock, filled, ring + seconds, pulse).
-			AbilityRing(P, FVector2D(X + W - 20.f * K, RowY + Key * .5f), 9.f * K, Card.Ability == ETDAbilityId::None, Card.Ability01, Card.bAbilityActive,
+			NoteRect(CardId, TEXT("power_dot"), PowerAt.X - Dot - 2.f, PowerAt.Y - Dot - 2.f, 2.f * (Dot + 2.f), 2.f * (Dot + 2.f));
+			AbilityRing(P, AbAt, R2, Card.Ability == ETDAbilityId::None, Card.Ability01, Card.bAbilityActive,
 				Card.bAbilityActive ? AbilityGlyph : Card.AbilitySecondsText.IsEmpty() ? AbilityGlyph : Card.AbilitySecondsText, Sz(10), O, Time);
+			NoteRect(CardId, TEXT("ability_ring"), AbAt.X - R2 - 2.f, AbAt.Y - R2 - 2.f, 2.f * (R2 + 2.f), 2.f * (R2 + 2.f));
+			ContentRight = PowerAt.X - Dot - 2.f - 6.f * K;
+		}
+		// Trouble badge after the names: a "!" triangle (the border pulses amber too), only where it fits.
+		if (Card.bTrouble && RowRight + 22.f * K < ContentRight)
+		{
+			const FVector2D B(RowRight + 12.f * K, RowC);
+			P.Poly(B, { { 0, -8 }, { 8, 6 }, { -8, 6 }, { 0, -8 } }, T::Warning(), 2.f, K);
+			P.Words(B.X, B.Y - Sz(11) * .55f, TEXT("!"), Sz(11), T::Warning(), "Bold", .5f, 0);
+			NoteRect(CardId, TEXT("trouble"), B.X - 9.f * K, B.Y - 9.f * K, 18.f * K, 18.f * K);
 		}
 
-		// Status flags above the card: icon + word, left to right by priority (3 on the flown card, 2 on a wingman).
+		// ---- status flags: tabs above the card with a fixed gap, left-aligned to its edge (outside the card on purpose)
 		{
 			static const FString UnderFire(TEXT("UNDER FIRE")), Cloaked(TEXT("CLOAKED")), Dome(TEXT("DOME UP")), Afterburn(TEXT("AFTERBURN"));
-			const float TagH = 20.f * K, TagY = Y - TagH - 6.f * K;
+			const float TagH = SquadFlagHeight(K, F), TagY = Y - TagH - 6.f * K;
 			float TagX = X;
-			int32 Left = bBig ? 3 : 2;
+			int32 Slots = bBig ? 3 : 2;
 			// Icon: 0 triangle, 1 eye with a slash, 2 half circle, 3 turned square, 4 double chevron.
 			auto Flag = [&](const FString& Word, FLinearColor C, int32 IconKind, bool bFilled)
 			{
-				if (Left-- <= 0)
+				if (Slots-- <= 0)
 				{
 					return;
 				}
-				const int32 Px = Sz(11);
-				float TextW = P.Measure(Word, P.Font("Bold", Px, 60));
-				if (TextW <= 0.f)
-				{
-					TextW = Word.Len() * Px * .72f;
-				}
-				const float TW = TextW + 30.f * K + 8.f;
+				const int32 Px = Sz(FlagTagPx);
+				const float TW = TextW(P, Word, Px, "Bold", 60) + 30.f * K + 8.f;
 				P.Box(TagX, TagY, TW, TagH, bFilled ? FMath::Lerp(FTDUIPalette::Panel(), C, .28f).CopyWithNewOpacity(.92f) : FTDUIPalette::Panel());
 				P.Poly(FVector2D(TagX, TagY), { { 0, 0 }, { TW, 0 }, { TW, TagH }, { 0, TagH }, { 0, 0 } }, C.CopyWithNewOpacity(.9f), 1.2f);
 				const FVector2D I(TagX + 13.f * K, TagY + TagH * .5f);
@@ -1807,6 +1963,7 @@ namespace TDFlightHUD
 					P.Poly(I + FVector2D(3.f * K, 0), { { -3, -5 }, { 2, 0 }, { -3, 5 } }, C, 1.6f, K); break;
 				}
 				P.Words(TagX + 26.f * K, TagY + TagH * .5f - Px * .68f, Word, Px, C, "Bold", 0.f, 60);
+				NoteRect(CardId, TEXT("flag"), TagX, TagY, TW, TagH);
 				TagX += TW + 6.f * K;
 			};
 			if (Card.bAlive && Card.UnderFire01 > 0.f) { Flag(UnderFire, FTDUIPalette::Hostile(), 0, true); }
@@ -1816,34 +1973,44 @@ namespace TDFlightHUD
 			if (Card.bAfterburn) { Flag(Afterburn, Ship, 4, false); }
 		}
 
-		// Bars with numbers, or the DOWN line.
+		// ---- the bottom rows: SHD / HUL with their numbers (flown card), two bars with equal side padding (wingman)
 		if (!Card.bAlive)
 		{
-			P.Words(X + Pad, Y + H - (bBig ? 36.f : 28.f) * K, Card.DownText, Sz(bBig ? 15 : 13), T::Danger(), "Bold", 0.f, 60);
+			const int32 DownPx = Sz(bBig ? 15 : 13);
+			const float DY = Bottom - TextH(DownPx);
+			P.Words(Left, DY, Card.DownText, DownPx, T::Danger(), "Bold", 0.f, 60);
+			NoteRect(CardId, TEXT("down"), Left, DY, FMath::Min(TextW(P, Card.DownText, DownPx, "Bold", 60), ContentRight - Left), TextH(DownPx));
 			return;
 		}
-		static const FString Shd(TEXT("SHD")), Hul(TEXT("HUL"));
-		const float TagW = bBig ? Sz(11) * 3.2f : 0.f;
-		const float NumW = bBig ? Sz(14) * 3.f : 0.f;
-		const float BarX = X + Pad + TagW;
-		const float BarRight = (bBig ? X + W - 60.f * K : X + W - Pad) - NumW;
-		const float BarW = FMath::Max(20.f, BarRight - BarX);
-		const float ShH = (bBig ? 6.f : 4.f) * K, HuH = (bBig ? 12.f : 10.f) * K;
-		const float HuY = Y + H - Pad - HuH, ShY = HuY - (bBig ? 12.f : 6.f) * K - ShH;
 		const FLinearColor HullC = Card.bCritical ? FTDUIPalette::Hostile().CopyWithNewOpacity(Pulse1Hz) : T::Hull(Card.Hull);
 		if (bBig)
 		{
-			P.Words(X + Pad, ShY + ShH * .5f - Sz(11) * .68f, Shd, Sz(11), Muted, "Medium", 0.f, 80);
-			P.Words(X + Pad, HuY + HuH * .5f - Sz(11) * .68f, Hul, Sz(11), Muted, "Medium", 0.f, 80);
+			static const FString Shd(TEXT("SHD")), Hul(TEXT("HUL")), Wide(TEXT("100"));
+			const int32 TagPxNow = Sz(FlagTagPx), NumPxNow = Sz(NumPx);
+			const float TagW = FMath::Max(TextW(P, Shd, TagPxNow, "Medium", 80), TextW(P, Hul, TagPxNow, "Medium", 80)) + 6.f * K;
+			const float NumW = TextW(P, Wide, NumPxNow, "Mono", 0) + 2.f;
+			const float LineH = TextH(NumPxNow);
+			const float HulC = Bottom - LineH * .5f, ShdC = HulC - LineH - 2.f * K;
+			const float BarX = Left + TagW, NumRight = ContentRight, BarRight = NumRight - NumW - 6.f * K;
+			const float BarW = FMath::Max(20.f, BarRight - BarX);
+			const float ShH = 6.f * K, HuH = 11.f * K;
+			P.Words(Left, ShdC - TagPxNow * .68f, Shd, TagPxNow, Muted, "Medium", 0.f, 80);
+			P.Words(Left, HulC - TagPxNow * .68f, Hul, TagPxNow, Muted, "Medium", 0.f, 80);
+			SegmentBar(P, BarX, ShdC - ShH * .5f, BarW, ShH, Card.Shield, Card.Shield, T::Shield());
+			SegmentBar(P, BarX, HulC - HuH * .5f, BarW, HuH, Card.Hull, Card.GhostHull, HullC);
+			P.Words(NumRight, ShdC - NumPxNow * .68f, Card.ShieldText, NumPxNow, T::Shield(), "Mono", 1.f, 0);
+			P.Words(NumRight, HulC - NumPxNow * .68f, Card.HullText, NumPxNow, HullC, "Mono", 1.f, 0);
+			NoteRect(CardId, TEXT("shd_row"), Left, ShdC - LineH * .5f, NumRight - Left, LineH);
+			NoteRect(CardId, TEXT("hul_row"), Left, HulC - LineH * .5f, NumRight - Left, LineH);
 		}
-		SegmentBar(P, BarX, ShY, BarW, ShH, Card.Shield, Card.Shield, T::Shield());
-		SegmentBar(P, BarX, HuY, BarW, HuH, Card.Hull, Card.GhostHull, HullC);
-		// Numbers on the flown card only, beside their SHD / HUL tags; wingman cards keep the two bars (thin = shield).
-		if (bBig)
+		else
 		{
-			const float NumX = BarRight + NumW;
-			P.Words(NumX, ShY + ShH * .5f - Sz(14) * .68f, Card.ShieldText, Sz(14), T::Shield(), "Mono", 1.f, 0);
-			P.Words(NumX, HuY + HuH * .5f - Sz(14) * .68f, Card.HullText, Sz(14), HullC, "Mono", 1.f, 0);
+			const float ShH = 4.f * K, HuH = 10.f * K;
+			const float HuY = Bottom - HuH, ShY = HuY - 4.f * K - ShH;
+			const float BarW = Right - Left; // equal padding on both sides
+			SegmentBar(P, Left, ShY, BarW, ShH, Card.Shield, Card.Shield, T::Shield());
+			SegmentBar(P, Left, HuY, BarW, HuH, Card.Hull, Card.GhostHull, HullC);
+			NoteRect(CardId, TEXT("bars"), Left, ShY, BarW, Bottom - ShY);
 		}
 	}
 }
@@ -2044,6 +2211,11 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 		// Other hostiles: a 14 px hollow triangle, point down, above the ship; a locked one gets a 20 px amber diamond.
 		// Just above the ship's outline (live: a fixed 18 px sat on the hull of a close ship).
 		const FVector2D Tick(M.Pos.X, M.Pos.Y - FMath::Max(18.f, M.ScreenRadius + 16.f));
+		// A ship behind the squad row: no tick over the cards (the 720p sweep put one on Wren's card); the radar still shows it.
+		if (View.RowRight > 0.f && Tick.X - 12.f <= View.RowRight + 16.f && Tick.Y + 12.f > View.RowFlagTop - 16.f)
+		{
+			continue;
+		}
 		Rec(TEXT("tick"), Tick.X - 7.f, Tick.Y - 6.f, 14.f, 12.f);
 		Shape(M, Tick, 0.f, .95f);
 		Rec(*FString::Printf(TEXT("kind_%s"), KindName(M.Kind)), Tick.X - 12.f, Tick.Y - 12.f, 24.f, 24.f);
@@ -2271,6 +2443,16 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 
 	static const TArray<FWaypoint> NoWaypoints;
 	const TArray<FWaypoint>& ShownWaypoints = View.bCombatHeld ? NoWaypoints : View.Waypoints; // a focus hold: none
+	// Distance labels beside edge markers keep 16 px clear of the squad row and its flags (Nick's Lead, 720p: "2.8 km"
+	// ran into the UNDER FIRE tab): a label over the row's span is lifted above it. Recorded for TD.UI.Layout.
+	auto ClearOfRow = [this](FVector2D At, float HalfW, float Up, float Down)
+	{
+		if (View.RowRight > 0.f && At.X - HalfW <= View.RowRight + 16.f && At.Y + Down > View.RowFlagTop - 16.f)
+		{
+			At.Y = View.RowFlagTop - 16.f - Down;
+		}
+		return At;
+	};
 	// A "follow the marker" objective (one waypoint, no wave count, no generators: the withdrawal, a planet, the bay):
 	// the marker is the thing to look at (T1's play: the small edge icon was easy to miss). Off screen it is twice the
 	// size with a slow pulse and an arrow, and it is named from the objective's first word ("WITHDRAW 2.7 KM"); on
@@ -2312,8 +2494,9 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 			P.Box(Wp.Pos.X - 2.5f, Wp.Pos.Y - 2.5f, 5.f, 5.f, Lit);
 			P.Chevron(Wp.Pos + F * 30.f, Wp.Angle, 22.f, Lit, true);
 			Rec(TEXT("waypoint_edge"), Wp.Pos.X - 18.f, Wp.Pos.Y - 18.f, 36.f, 36.f);
-			const FVector2D Label = Wp.Pos - F * 110.f;
+			const FVector2D Label = ClearOfRow(Wp.Pos - F * 110.f, 110.f, 10.f, 18.f);
 			P.BackedWords(Label.X, Label.Y - 10.f, (FollowWord.IsEmpty() ? FString() : FollowWord + TEXT("  ")) + Range(Wp.Distance).ToUpper(), 17, Way, .5f, 40);
+			Rec(TEXT("edge_label"), Label.X - 110.f, Label.Y - 11.f, 220.f, 29.f);
 			Area += 220.f * 44.f;
 			continue;
 		}
@@ -2358,8 +2541,9 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 			Rec(TEXT("waypoint_edge"), Wp.Pos.X - 9.f, Wp.Pos.Y - 9.f, 18.f, 18.f);
 			P.Line(Wp.Pos + F * 11.f, Wp.Pos + F * 17.f, Way, 2.5f);
 			// The range sits inward of the diamond, clear of it (the planet capture had "5.1 km" over the diamond).
-			const FVector2D Label = Wp.Pos - F * 52.f;
+			const FVector2D Label = ClearOfRow(Wp.Pos - F * 52.f, 40.f, 9.f, 14.f);
 			P.BackedWords(Label.X, Label.Y - 8.f, Range(Wp.Distance), 14, Way, .5f, 20);
+			Rec(TEXT("edge_label"), Label.X - 40.f, Label.Y - 9.f, 80.f, 23.f);
 			Area += 70.f * 40.f;
 		}
 	}
@@ -2625,7 +2809,7 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 		const bool bCounter = View.HintCount > 0;
 		const float CardW = FMath::Clamp(28.f + KeyW + 16.f + ActW + (bCounter ? 70.f : 0.f) + 28.f, 300.f, 900.f);
 		const float CardH = 60.f;
-		const float X = CenterX - CardW * .5f, Y = 830.f;
+		const float X = CenterX - CardW * .5f, Y = FMath::Min(830.f, View.LaneBottom - CardH); // above the squad row at any size
 		Area += CardW * CardH;
 		P.Plate(X, Y, CardW, CardH, 12.f, T::Plate().CopyWithNewOpacity(.72f * Fade));
 		Rec(TEXT("card"), X, Y, CardW, CardH);
@@ -2656,7 +2840,7 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 		// #161: the closed-planet warning is the one large line (24 px on a taller plate, at full strength).
 		const bool bBigLane = bPlanetClosed && View.Lane == ELane::HyperdriveBlocked;
 		const int32 LanePx = bBigLane ? 24 : 17;
-		const float LaneH = bBigLane ? 50.f : 36.f, LaneY = bBigLane ? 826.f : 838.f;
+		const float LaneH = bBigLane ? 50.f : 36.f, LaneY = FMath::Min(bBigLane ? 826.f : 838.f, View.LaneBottom - LaneH);
 		const float LaneW = FMath::Clamp(P.Measure(View.LaneText, P.Font("Bold", LanePx, 50)) + 56.f, 240.f, bBigLane ? 1100.f : 760.f);
 		Area += LaneW * LaneH;
 		P.Plate(CenterX - LaneW * .5f, LaneY, LaneW, LaneH, 8.f, T::Plate().CopyWithNewOpacity(View.Lane == ELane::Hint ? .5f : bBigLane ? .85f : .65f));
@@ -2715,7 +2899,7 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 			for (const FString& Word : WordList)
 			{
 				const FString Try = Line.IsEmpty() ? Word : Line + TEXT(" ") + Word;
-				if (!Line.IsEmpty() && SubWrapLines.Num() < 2 && LineW(Try) > MaxTextW)
+				if (!Line.IsEmpty() && SubWrapLines.Num() < 3 && LineW(Try) > MaxTextW)
 				{
 					SubWrapWidth = FMath::Max(SubWrapWidth, LineW(Line));
 					SubWrapLines.Add(MoveTemp(Line));
@@ -2728,6 +2912,13 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 			}
 			if (!Line.IsEmpty())
 			{
+				// Four lines at most (Large at 720p): a last line that still does not fit is cut with an ellipsis.
+				while (Line.Len() > 4 && LineW(Line) > MaxTextW)
+				{
+					Line.LeftChopInline(Line.EndsWith(TEXT("…")) ? 2 : 1, EAllowShrinking::No);
+					Line.TrimEndInline();
+					Line += TEXT("…");
+				}
 				SubWrapWidth = FMath::Max(SubWrapWidth, LineW(Line));
 				SubWrapLines.Add(MoveTemp(Line));
 			}
@@ -2741,7 +2932,8 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 		// The plate fits the text, centred, inside the safe frame (a third line that is still too long widens it to 80%).
 		const float PlateW = FMath::Clamp(44.f + TagW + SubWrapWidth, 240.f, FMath::Min(1536.f, 1920.f - 2.f * SafeX));
 		const float X = CenterX - PlateW * .5f;
-		P.Plate(X, SubY, PlateW, H, 8.f, T::Plate().CopyWithNewOpacity(.6f * Fade));
+		// 78% (was 60%): the line must read over the bright nebula and over the squad row's colours.
+		P.Plate(X, SubY, PlateW, H, 8.f, T::Plate().CopyWithNewOpacity(.78f * Fade));
 		Rec(TEXT("subtitle"), X, SubY, PlateW, H);
 		Area += PlateW * H;
 		if (bStatic)
@@ -2778,6 +2970,7 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 	FPaint PanelP = P;
 	PanelP.Alpha *= PanelAlpha;
 	const bool bPanelShown = View.bSquadPanel && PanelP.Alpha > .01f;
+	TDFlightHUD::CardRects().Reset();
 	if (bPanelShown)
 	{
 		float Left = 1e9f, Top = 1e9f, Right = 0.f;
@@ -2795,6 +2988,30 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 				Top = FMath::Min(Top, float(Card.Pos.Y));
 				Right = FMath::Max(Right, float(Card.Pos.X + Card.Size.X));
 			}
+		}
+		// SHADOW ON / OFF (the wingman builder's ATDSquadManager::IsShadowMode, read by name in Sample): a small chip right of
+		// the cards on the row's bottom edge, with its keycap. Nothing until the getter exists.
+		if (View.ShadowMode >= 0 && Right > Left)
+		{
+			const float K = View.PanelK;
+			const int32 Px = FMath::RoundToInt(12.f * View.PanelFont);
+			static const FString On(TEXT("SHADOW ON")), Off(TEXT("SHADOW OFF"));
+			const FString& Word = View.ShadowMode > 0 ? On : Off;
+			const FString& KeyCap = View.bUsingGamepad ? PadShadowKey : KbShadowKey;
+			const float KeyW = FMath::Max(22.f * K, P.Measure(KeyCap, P.Font("Bold", Px, 0)) + 10.f * K);
+			float WordW = P.Measure(Word, P.Font("Bold", Px, 60));
+			WordW = WordW > 0.f ? WordW : Word.Len() * Px * .66f;
+			const float ChipH = FMath::Max(28.f * K, Px * 1.36f + 10.f * K), ChipW = 10.f * K + KeyW + 8.f * K + WordW + 12.f * K;
+			const float ChipX = Right + CardGap * K, ChipY = 1080.f - SafeY - ChipH;
+			const FLinearColor ShadowC = View.ShadowMode > 0 ? FTDUIPalette::Lancer() : FTDUIPalette::Muted();
+			PanelP.Box(ChipX, ChipY, ChipW, ChipH, FTDUIPalette::Panel());
+			PanelP.Poly(FVector2D(ChipX, ChipY), { { 0, 0 }, { ChipW, 0 }, { ChipW, ChipH }, { 0, ChipH }, { 0, 0 } }, ShadowC.CopyWithNewOpacity(.8f), 1.f);
+			PanelP.Outline(ChipX + 10.f * K, ChipY + (ChipH - 20.f * K) * .5f, KeyW, 20.f * K, 4.f * K, 1.2f, FTDUIPalette::Ink().CopyWithNewOpacity(.7f));
+			PanelP.Words(ChipX + 10.f * K + KeyW * .5f, ChipY + ChipH * .5f - Px * .68f, KeyCap, Px, FTDUIPalette::Ink(), "Bold", .5f, 0);
+			PanelP.Words(ChipX + 18.f * K + KeyW, ChipY + ChipH * .5f - Px * .68f, Word, Px, ShadowC, "Bold", 0.f, 60);
+			TDFlightHUD::CardRects().Add({ 3, FName(TEXT("card")), FBox2D(FVector2D(ChipX, ChipY), FVector2D(ChipX + ChipW, ChipY + ChipH)) });
+			Rec(TEXT("shadow"), ChipX, ChipY, ChipW, ChipH);
+			Right = ChipX + ChipW;
 		}
 		if (Right > Left)
 		{

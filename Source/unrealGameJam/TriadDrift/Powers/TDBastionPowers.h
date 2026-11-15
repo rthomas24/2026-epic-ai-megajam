@@ -37,6 +37,17 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Swarm")
 	FTDProjectileSpec MissileSpec;
 
+	/** #201 WINGMAN AI ENTRY: the targets the next swarm started by TryActivateFromAI is split across (the AI has no
+	 *  lock painting). Used once, then cleared. */
+	void SetAITargets(const TArray<AActor*>& InTargets)
+	{
+		AITargets.Reset();
+		for (AActor* T : InTargets)
+		{
+			AITargets.Add(T);
+		}
+	}
+
 	/** Targets the last swarm was split across (tests, HUD). */
 	const TArray<TWeakObjectPtr<AActor>>& GetLastTargets() const { return LastTargets; }
 
@@ -50,6 +61,7 @@ protected:
 private:
 	UTDTargetingComponent* GetTargeting() const;
 	TArray<TWeakObjectPtr<AActor>> LastTargets;
+	TArray<TWeakObjectPtr<AActor>> AITargets; // #201
 };
 
 /** Hold Q: a 3000 cm dome for 6 s, 16 s cooldown (counted from when it collapses). */

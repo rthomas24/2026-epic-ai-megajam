@@ -1,0 +1,28 @@
+{
+ "name": "VerdanceClover",
+ "kind": "foliage",
+ "normal": "OpenGL, flipped (-0.707)",
+ "green_share": 0.995,
+ "meshes": [
+  {
+   "mesh": "SM_Fab_VerdanceClover_A",
+   "variant": "B",
+   "tris": 360,
+   "size_cm": [
+    67.0,
+    51.7,
+    12.7
+   ]
+  },
+  {
+   "mesh": "SM_Fab_VerdanceClover_B",
+   "variant": "C",
+   "tris": 937,
+   "size_cm": [
+    142.8,
+    91.3,
+    14.6
+   ]
+  }
+ ]
+}

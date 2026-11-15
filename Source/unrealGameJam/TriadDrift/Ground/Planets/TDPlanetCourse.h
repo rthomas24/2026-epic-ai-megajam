@@ -183,6 +183,7 @@ private:
 	UPROPERTY(Transient) TObjectPtr<class ATDDoor> WardenExitDoor;
 	TWeakObjectPtr<class ATDObjective> WardenGateObjective;
 	void CompleteFinalRecordStep();
+	bool IsFinalRecordPlayed() const;
 	UPROPERTY(Transient) TObjectPtr<UStaticMeshComponent> ParkedShip;
 	UPROPERTY(Transient) TArray<TObjectPtr<UStaticMeshComponent>> ParkedParts;
 	int32 ConduitsDown = 0;
@@ -293,6 +294,10 @@ private:
 	int32 Dress(const TArray<FDressItem>& Items, const FVector& Origin, float Yaw, FName Site);
 	void RetintDressing(const FVector& Local, float RadiusCm, const TCHAR* MeshName, const TCHAR* MaterialPath);
 	int32 DressCamp(const FVector& Around, float MinR, float MaxR, const TArray<FDressItem>& Items, FName Tag);
+	void DressRouteBreaks(bool bCinder);
+	void DressAmbient(bool bCinder);
+	int32 SpawnAmbient(const TCHAR* Name, const FVector& Local, float ZOffset);
+	int32 SpawnScorch(const FVector& Local, float SizeCm, float Yaw, bool bCinder);
 	AActor* SpawnKitBP(const TCHAR* Folder, const TCHAR* Name, const FVector& Local, float Yaw, float Scale = 1.f);
 	/** The outpost's exterior props in its frame (+X = the door side), clear of the door apron and the room. */
 	void DressOutpost(const FVector& Site, float Yaw, FName Tag);
@@ -422,6 +427,7 @@ private:
 	 */
 	FBox2D GroundBox = FBox2D(FVector2D(-300000.f, -300000.f), FVector2D(300000.f, 300000.f));
 	UPROPERTY(Transient) TObjectPtr<UStaticMeshComponent> GroundSlab;
+	bool bSlabLowered = false;
 	/** Hide the slab (collision kept) under the procedural terrain, whose flat basin draws the floor; retries while it spawns. */
 	void AdoptTerrainMaterial();
 	int32 TerrainMaterialTries = 0;

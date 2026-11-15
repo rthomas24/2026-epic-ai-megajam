@@ -65,6 +65,9 @@ static TAutoConsoleVariable<int32> CVarTDIntro(
 	TEXT("ENG-33 cinematic intro on New Game: 1 = play (default), 0 = never."),
 	ECVF_Default);
 
+static TAutoConsoleVariable<FString> CVarTDIntroOpeningBedForTests(TEXT("td.Intro.OpeningBedForTests"), TEXT(""),
+	TEXT("#146 dev: a sound path played as the intro's opening bed instead of DA_UI_Style.IntroOpeningBed (empty = the style's)."));
+
 static TAutoConsoleVariable<float> CVarTDIntroEclipseEV(
 	TEXT("td.Intro.EclipseEV"), -3.0f,
 	TEXT("Intro shot 2 (Verdance in eclipse): the exposure bias (stops; the galaxy's exposure is manual). Lower = darker."),
@@ -782,6 +785,26 @@ bool UTDIntroDirector::Play(FSimpleDelegate OnFinished)
 	// Music (presentation slot; the asset carries its own class and volume). T1, issue #24: not while the tutorial
 	// music (prelude / loop) owns a New Game's opening; IntroMusic stays for runs without it.
 	bIntroMusicSuppressed = !UTDTutorialMusicSubsystem::ShouldIntroPlayIntroMusic(this);
+	// #146: under a watched intro whose music is the tutorial score, an optional bed fills the opening until the score.
+	PendingOpeningBed.Reset();
+	if (bIntroMusicSuppressed)
+	{
+		USoundBase* Bed = nullptr;
+		const FString Override = CVarTDIntroOpeningBedForTests.GetValueOnGameThread();
+		if (!Override.IsEmpty())
+		{
+			Bed = LoadObject<USoundBase>(nullptr, *Override); // a stand-in, to prove the timing before Nicholas assigns one
+		}
+		else if (const UTDUIStyle* BedStyle = UTDStatics::LoadPresentation<UTDUIStyle>(TEXT("DA_UI_Style")))
+		{
+			Bed = BedStyle->IntroOpeningBed.LoadSynchronous();
+			OpeningBedFadeSeconds = BedStyle->IntroOpeningBedFadeSeconds;
+		}
+		if (Bed)
+		{
+			if (bWarmingUp) { PendingOpeningBed = Bed; } else { StartOpeningBed(Bed); }
+		}
+	}
 	if (const UTDUIStyle* Style = bIntroMusicSuppressed ? nullptr : UTDStatics::LoadPresentation<UTDUIStyle>(TEXT("DA_UI_Style")))
 	{
 		if (USoundBase* Sound = Style->IntroMusic.LoadSynchronous())
@@ -1935,6 +1958,7 @@ bool UTDIntroDirector::Skip()
 	}
 	bSkipped = true;
 	UE_LOG(LogTriadDrift, Log, TEXT("Intro: skipped at %.1f s"), Elapsed);
+	FadeOpeningBed(0.3f, TEXT("the intro was skipped"));
 	// The score is cut to the picture: a skip fades it out over a second (watched, it plays to its own end, which
 	// lines up with the hand-off: docs/eng/intro-beats.md).
 	if (Music)
@@ -2021,10 +2045,16 @@ void UTDIntroDirector::Tick(float DeltaTime)
 				Music = UGameplayStatics::SpawnSound2D(this, Sound);
 			}
 			PendingMusic.Reset();
+			if (USoundBase* Bed = PendingOpeningBed.Get())
+			{
+				StartOpeningBed(Bed);
+			}
+			PendingOpeningBed.Reset();
 		}
 		return;
 	}
 	Elapsed += RealDt;
+	UpdateOpeningBed();
 	if (bSequenceMode)
 	{
 		// Presentation's own Level Sequence: it owns the camera cuts; the hand-off follows its last frame.
@@ -2153,6 +2183,8 @@ void UTDIntroDirector::Finish()
 		return;
 	}
 	FireHandOffLines(); // watched or skipped, the radio picks up as control returns
+	FadeOpeningBed(0.3f, TEXT("the intro ended"));
+	PendingOpeningBed.Reset();
 	ClearShowcase();
 	RestoreShotHidden();
 	if (SequencePlayer)
@@ -2239,8 +2271,40 @@ void UTDIntroDirector::RemoveWidget()
 	Widget.Reset();
 }
 
+void UTDIntroDirector::StartOpeningBed(USoundBase* Sound)
+{
+	if (OpeningBed || !Sound)
+	{
+		return;
+	}
+	OpeningBed = UGameplayStatics::SpawnSound2D(this, Sound);
+	UE_LOG(LogTriadDrift, Log, TEXT("Intro: opening bed %s starts at %.1f s"), *Sound->GetName(), Elapsed);
+}
+
+void UTDIntroDirector::FadeOpeningBed(float Seconds, const TCHAR* Why)
+{
+	if (!OpeningBed)
+	{
+		return;
+	}
+	OpeningBed->FadeOut(FMath::Max(Seconds, 0.05f), 0.f);
+	OpeningBed = nullptr;
+	UE_LOG(LogTriadDrift, Log, TEXT("Intro: opening bed fades over %.2f s at %.1f s (%s)"), Seconds, Elapsed, Why);
+}
+
+void UTDIntroDirector::UpdateOpeningBed()
+{
+	// The tutorial score has started (its first voice): the bed gives way.
+	const UTDTutorialMusicSubsystem* Score = OpeningBed ? UTDTutorialMusicSubsystem::Get(this) : nullptr;
+	if (Score && Score->GetVoicesStarted() > 0)
+	{
+		FadeOpeningBed(OpeningBedFadeSeconds, TEXT("the tutorial score started"));
+	}
+}
+
 void UTDIntroDirector::Deinitialize()
 {
+	FadeOpeningBed(0.3f, TEXT("the intro was cut short"));
 	if (bPlaying)
 	{
 		OnFinishedDelegate.Unbind(); // the world is going away: nothing to start

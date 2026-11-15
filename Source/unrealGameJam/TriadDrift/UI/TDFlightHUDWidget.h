@@ -236,6 +236,8 @@ public:
 	{
 		/** #160: the squad panel is on (off = the Minimal HUD setting: today's chips). */
 		bool bSquadPanel = false;
+		/** Wingmen shadow mode (#201): -1 unknown, 0 off, 1 on. */
+		int32 ShadowMode = -1;
 		/** 0..1 while a director shot runs (eased): the squad panel and radar are out of the shot. */
 		float ShotHide = 0.f;
 		FSquadCard Cards[3];
@@ -246,6 +248,11 @@ public:
 		float SubtitleScale = 1.f;
 		/** Bottom of the subtitle slot (above the squad panel's flag row when the panel is on). */
 		float SubtitleBottom = 964.f;
+		/** Bottom of the prompt lane / hint card (above the squad row's flags when the panel is on). */
+		float LaneBottom = 890.f;
+		/** The squad row's avoid zone for edge markers and their labels: the flag tabs' top and the row's right end. */
+		float RowFlagTop = 1080.f;
+		float RowRight = 0.f;
 		/** Navigation pulse: 0..1 through it (0 = none), and the corridor's ends in the design frame. */
 		float NavPulse = 0.f;
 		FVector2D NavFrom = FVector2D::ZeroVector;
@@ -632,6 +639,8 @@ private:
 	int32 CardAbilitySecShown[3] = { -1, -1, -1 };
 	int32 CardOverShown[3] = { -1, -1, -1 };
 	FTDWaveInfo FrameWave;
+	/** The shadow-mode keycaps (G / View). */
+	FString KbShadowKey = TEXT("G"), PadShadowKey = TEXT("VIEW");
 	/** "KATO DOWN · SWITCHED TO MOSS" after an auto-switch, for 3 s. */
 	FString SwitchNotice;
 	float SwitchNoticeLeft = 0.f;
