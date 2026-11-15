@@ -496,3 +496,8 @@ Lead reconciled private Builds16–18 and sessions34–39 into the current Nick 
 ## Nick Lead runtime checkpoint — November 14, 18:50 EST
 
 Lead reconciled sessions40–42 into the Nick checkpoint: narrow active-escape re-entry, actual10.5s intro-bed skip, and forced-growth asteroid split checks. Verified original evidence packets are linked in docs/visual/STATUS.md and their existing issues. Resolved only the original asteroid dangling-reference finding against integrated d6a98bee/main508edec6 plus independent source/runtime proof. Cinder remains BLOCKER, legacy saved-position recovery MAJOR, and the newly integrated HUD changes await native regression. All sessions exited normally; local native resources released to separately authorized Asset Handler intake. No source/assets, Ryan claims, historical text or feature completion markers changed.
+
+
+## Nick Lead runtime checkpoint — November 14, 19:35 EST
+
+Lead reconciled original evidence from sessions43–46: on-foot subtitle/card overlap, pre-fix Verdance course-height failure, original-save Cinder recovery failure on36bee71d, and narrow shadow toggle/switch multiplier pass onb1eb44f7. Runtime limits and issue links are in docs/visual/STATUS.md. Existing owners retain all fixes; no unchanged Cinder retry or broader feature closure. All sessions exited0, no Lead native process remains. Private runtime builds preserve the human launch project. Only four owned documentation paths changed; no source/assets or Ryan claims.
