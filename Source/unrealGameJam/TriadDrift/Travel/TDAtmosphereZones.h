@@ -73,9 +73,9 @@ public:
 	/** A must-hear sequence is playing now (the hold applies). */
 	bool IsStoryHoldingEntry() const;
 
-	/** While held the ship crawls at this speed (cm/s; steerable) so it stops at the atmosphere's edge, not inside the planet. */
+	/** While held, park by default (still steerable). A radial guard keeps even a tuned crawl outside the solid planet. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Atmosphere", meta = (ClampMin = "0", Units = "cm/s"))
-	float StoryHoldSpeed = 1500.f;
+	float StoryHoldSpeed = 0.f;
 	static const FName StoryHoldOverride; // "StoryHold"
 	void EndStoryHold();
 	/** After the must-hear sequence ends, the entry also waits for the line on air to finish - at most this long (s). */

@@ -124,7 +124,7 @@ bool UTDAtmosphereEntryComponent::BeginEntry(ETDDestination InDestination, FName
 	}
 	if (IsStoryHoldingEntry())
 	{
-		// A must-hear sequence is on (Aftermath): don't commit; fly on, commit when it ends (TickComponent).
+		// A must-hear sequence is on (Aftermath): wait outside the solid planet, then commit when it ends.
 		EntryState = ETDAtmosphereEntryState::Holding;
 		Destination = InDestination;
 		ReturnPoint = InReturnPoint;
@@ -134,8 +134,9 @@ bool UTDAtmosphereEntryComponent::BeginEntry(ETDDestination InDestination, FName
 		StoryEndedAt = -1.0;
 		bLoggedTailWait = false;
 		UE_LOG(LogTriadDrift, Log, TEXT("Atmosphere entry: held - a story sequence is playing (awaiting orders)"));
-		// Stopped at the edge, not a silent wall: the ship slows to a crawl (still steerable) and the HUD says AWAITING ORDERS.
+		// The speed override parks by default; the radial guard also catches incoming momentum or a tuned crawl.
 		if (UTDShipMovementComponent* Move = Craft->GetShipMovement()) { Move->SetSpeedOverrideFor(StoryHoldOverride, StoryHoldSpeed, 1.f, 30000.f); }
+		TickClosedPlanetGuard(0.f);
 		return true; // taken (not committed): the planet must not run its own fallback travel; it re-arms on the next pass
 	}
 	EntryState = ETDAtmosphereEntryState::Entering;
@@ -262,6 +263,14 @@ void UTDAtmosphereEntryComponent::TickClosedPlanetGuard(float DeltaTime)
 		bGuardLogged = false;
 		if (bGuardRoar) { bGuardRoar = false; if (Descent) { Descent->StopRoar(0.6f); } }
 	};
+	if (EntryState == ETDAtmosphereEntryState::Holding && bPlayer)
+	{
+		StandDown(); // no CLOSED PLANET warning for an open planet waiting on dialogue
+		const float HullRadius = Ship->GetRootComponent() ? Ship->GetRootComponent()->Bounds.SphereRadius : 500.f;
+		const float SafeRadius = FMath::Max(0.f, HeldSurfaceRadius) + HullRadius + FMath::Max(EntrySurfaceClearance, 100.f);
+		Move->SetKeepOutSphere(HeldPlanetCenter, SafeRadius, FMath::Max(EntrySurfaceClearance, 100.f));
+		return;
+	}
 	if (EntryState != ETDAtmosphereEntryState::Idle || Move->IsInAtmosphere())
 	{
 		StandDown(); // this ship's own entry is under way (or it is on a planet): nothing to keep out of
@@ -434,7 +443,11 @@ void UTDAtmosphereEntryComponent::EndStoryHold()
 {
 	if (const ATDSpacecraft* Craft = Cast<ATDSpacecraft>(GetOwner()))
 	{
-		if (UTDShipMovementComponent* Move = Craft->GetShipMovement()) { Move->ClearSpeedOverrideFor(StoryHoldOverride); }
+		if (UTDShipMovementComponent* Move = Craft->GetShipMovement())
+		{
+			Move->ClearSpeedOverrideFor(StoryHoldOverride);
+			Move->ClearKeepOutSphere(); // release the hold's guard before normal entry or the idle closed-planet guard
+		}
 	}
 }
 
