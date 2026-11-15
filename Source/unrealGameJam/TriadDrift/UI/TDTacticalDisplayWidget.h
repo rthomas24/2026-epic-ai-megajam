@@ -38,6 +38,7 @@ public:
 	/** Closes it now with a short fade (any action key, a hyperdrive spool, a new objective). */
 	void Dismiss();
 	bool IsDismissing() const { return bDismissing; }
+	float GetAge() const { return Age; }
 	/** The keycap shown in the "[key] DISMISS" hint. */
 	FString DismissKey = TEXT("X");
 	bool IsFinished() const { return Age >= Duration; }

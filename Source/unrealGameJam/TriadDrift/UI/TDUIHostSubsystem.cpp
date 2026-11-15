@@ -430,14 +430,29 @@ void UTDUIHostSubsystem::UpdateTacticalDismiss()
 		EKeys::Gamepad_FaceButton_Right, EKeys::Gamepad_RightShoulder, EKeys::Gamepad_LeftShoulder, EKeys::Gamepad_LeftThumbstick,
 		EKeys::Gamepad_FaceButton_Left, EKeys::Gamepad_FaceButton_Top, EKeys::Gamepad_DPad_Left, EKeys::Gamepad_DPad_Right,
 		EKeys::Gamepad_DPad_Down, EKeys::Gamepad_DPad_Up, EKeys::Gamepad_Special_Right };
+	// Lead (T7's New Game: never seen; Nick's Session49: gone 0.41 s after a click): it must be seen first. The deliberate
+	// dismiss keys work at once; fire, boost, powers and switching only after 2.5 s.
+	static const FKey DeliberateKeys[] = { EKeys::X, EKeys::BackSpace, EKeys::Gamepad_FaceButton_Right };
+	const bool bActionsMayDismiss = Display->GetAge() >= 2.5f;
 	bool bClose = false;
+	const TCHAR* Reason = TEXT("");
 	if (PC)
 	{
-		for (const FKey& Key : Keys)
+		for (const FKey& Key : DeliberateKeys)
 		{
 			if (PC->WasInputKeyJustPressed(Key))
 			{
 				bClose = true;
+				Reason = TEXT("dismiss key");
+				break;
+			}
+		}
+		for (const FKey& Key : Keys)
+		{
+			if (!bClose && bActionsMayDismiss && PC->WasInputKeyJustPressed(Key))
+			{
+				bClose = true;
+				Reason = TEXT("action key");
 				break;
 			}
 		}
@@ -454,14 +469,17 @@ void UTDUIHostSubsystem::UpdateTacticalDismiss()
 		else if (Objective != TacticalObjective)
 		{
 			bClose = true;
+			Reason = TEXT("objective changed");
 		}
 		if (Data->GetHyperdriveCharge01() > .01f)
 		{
 			bClose = true;
+			Reason = TEXT("hyperdrive spool");
 		}
 	}
 	if (bClose)
 	{
+		UE_LOG(LogTDUIHost, Log, TEXT("Tactical display hidden at %.2f s: %s."), Display->GetAge(), Reason);
 		Display->Dismiss();
 	}
 }
@@ -494,6 +512,7 @@ bool UTDUIHostSubsystem::ShowTacticalDisplay(const UObject* WorldContext, float 
 	Display->SetIsFocusable(false);
 	Host->bTacticalObjectiveKnown = false;
 	Display->Play(FMath::Min(Seconds, UTDTacticalDisplayWidget::MaxSeconds));
+	UE_LOG(LogTDUIHost, Log, TEXT("Tactical display shown for %.1f s (asked %.1f s)."), FMath::Min(Seconds, UTDTacticalDisplayWidget::MaxSeconds), Seconds);
 	return true;
 }
 

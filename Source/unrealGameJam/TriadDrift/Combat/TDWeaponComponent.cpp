@@ -1,6 +1,9 @@
 // Triad Drift - Combat (Teammate 2). Weapon slots: fire rate, heat, ammo, charge, salvos, spread, aim assist.
 
 #include "TriadDrift/Combat/TDWeaponComponent.h"
+#include "TriadDrift/Combat/TDAccuracyStats.h"
+#include "TriadDrift/Combat/TDAimAssist.h"
+#include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Combat/TDCombatPerf.h"
 #include "TriadDrift/Combat/TDCombatCueLog.h"
 #include "TriadDrift/Combat/TDCombatBarks.h"
@@ -351,6 +354,10 @@ void UTDWeaponComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	TickSlot(ETDWeaponSlot::Primary, DeltaTime);
 	TickSlot(ETDWeaponSlot::Secondary, DeltaTime);
+	if (const ATDShip* Ship = Cast<ATDShip>(GetOwner()); Ship && Ship->IsPlayerFlown())
+	{
+		FTDAccuracyStats::NoteFlown(static_cast<int32>(Ship->GetShipId()), DeltaTime);
+	}
 }
 
 void UTDWeaponComponent::TickSlot(ETDWeaponSlot Slot, float DeltaTime)
@@ -622,6 +629,13 @@ void UTDWeaponComponent::SpawnProjectile(ETDWeaponSlot Slot, float SubFrameAge)
 		return;
 	}
 	LastFired.Add({ P, P->GetLaunchSerial() });
+	// #192 accuracy: the player's own ship only.
+	if (const ATDShip* Ship = Cast<ATDShip>(Owner); Ship && Ship->IsPlayerFlown())
+	{
+		P->StatShip = static_cast<uint8>(Ship->GetShipId());
+		P->StatSlot = Slot == ETDWeaponSlot::Primary ? 0 : 1;
+		FTDAccuracyStats::NoteShot(P->StatShip, P->StatSlot);
+	}
 	if (SubFrameAge > 0.f)
 	{
 		P->Step(SubFrameAge);
@@ -648,7 +662,14 @@ FVector UTDWeaponComponent::ComputeFireDirection(const FTDWeaponSpec& Spec, cons
 {
 	FVector Dir = GetAimDirection();
 
-	if (Spec.AimAssistDeg > 0.f)
+	// #201: the player's ship (all three) converges on the soft lock's lead point inside td.Aim.ConvergeDeg (scaled by
+	// pad / difficulty); wingmen and enemies keep their weapon data's own AimAssistDeg.
+	float ConvergeDeg = Spec.AimAssistDeg;
+	if (FTDAimAssist::IsEnabled() && FTDAimAssist::IsPlayerShip(GetOwner()))
+	{
+		ConvergeDeg = FMath::Max(ConvergeDeg, FTDAimAssist::ConvergeDeg(GetOwner()));
+	}
+	if (ConvergeDeg > 0.f)
 	{
 		AActor* Target = ResolveAimTarget();
 		const UTDHealthComponent* Health = Target ? UTDStatics::GetHealth(Target) : nullptr;
@@ -659,7 +680,7 @@ FVector UTDWeaponComponent::ComputeFireDirection(const FTDWeaponSpec& Spec, cons
 			const FVector Lead = UTDTargetingComponent::ComputeInterceptPoint(MuzzleLocation, ShooterVel, Target->GetActorLocation(),
 				Target->GetVelocity(), Spec.Projectile.Speed);
 			const FVector ToLead = (Lead - MuzzleLocation).GetSafeNormal();
-			if (!ToLead.IsNearlyZero() && FVector::DotProduct(ToLead, Dir) >= FMath::Cos(FMath::DegreesToRadians(Spec.AimAssistDeg)))
+			if (!ToLead.IsNearlyZero() && FVector::DotProduct(ToLead, Dir) >= FMath::Cos(FMath::DegreesToRadians(ConvergeDeg)))
 			{
 				Dir = ToLead;
 			}

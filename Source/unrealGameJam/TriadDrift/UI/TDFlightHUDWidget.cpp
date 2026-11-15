@@ -1059,6 +1059,7 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 	FVector LeadWorld;
 	FVector2D LeadDir;
 	View.bHasLead = Current && Data.GetLeadIndicator(LeadWorld) && Project(LeadWorld, View.Lead, LeadDir);
+	View.bLeadTargetOnScreen = View.bHasLead && Project(Current->GetActorLocation(), View.LeadTarget, LeadDir);
 
 	// Wingmen off screen: a hollow chevron in their colour, pulsing when that wingman is in trouble.
 	View.Wings.Reset();
@@ -1519,6 +1520,18 @@ static FAutoConsoleCommandWithWorld CmdTDUILayout(TEXT("TD.UI.Layout"), TEXT("TD
 				}
 				const bool bEdge = B.Key == TEXT("edge") || B.Key == TEXT("missile_edge") || B.Key == TEXT("waypoint_edge") || B.Key == TEXT("wing") || B.Key == TEXT("edge_label");
 				const FBox2D Test = bEdge ? B.Value.ExpandBy(16.f) : B.Value;
+				// #103: projected objective / generator markers never sit on the subtitle plate.
+				if (B.Key == TEXT("waypoint") || B.Key == TEXT("waypoint_edge"))
+				{
+					for (const TPair<FName, FBox2D>& Sub : HUD->LastBoxes)
+					{
+						if (Sub.Key == TEXT("subtitle") && Overlap(B.Value, Sub.Value))
+						{
+							++Problems;
+							UE_LOG(LogTemp, Warning, TEXT("TD.UI.Layout PROBLEM: %s %s overlaps the subtitle %s"), *B.Key.ToString(), *Str(B.Value), *Str(Sub.Value));
+						}
+					}
+				}
 				// Edge markers and their labels also keep 16 px clear of the radar and its WAVE header.
 				if (bEdge && B.Key != TEXT("waypoint_edge") && B.Key != TEXT("edge") && B.Key != TEXT("missile_edge") && B.Key != TEXT("wing"))
 				{
@@ -2090,6 +2103,9 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 	float Area = 224.f * 116.f; // the reticle cluster's box (spec 3.1); the rest is added as it is drawn
 	const FLinearColor Accent = T::Ship(View.Flown);
 	LastBoxes.Reset();
+	// The subtitle is painted after the markers: they avoid last frame's plate, which is then cleared until repainted.
+	const FBox2D PrevSubtitleBox = LastSubtitleBox;
+	LastSubtitleBox = FBox2D(ForceInit);
 	LastVignetteRect = FBox2D(ForceInit);
 	auto Rec = [this](const TCHAR* Name, float X, float Y, float W, float H) { LastBoxes.Emplace(FName(Name), FBox2D(FVector2D(X, Y), FVector2D(X + W, Y + H))); };
 	Rec(TEXT("reticle"), C.X - 16.f, C.Y - 16.f, 32.f, 32.f);
@@ -2547,53 +2563,70 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 		}
 	}
 	const float FollowPulse = .7f + .3f * FMath::Sin(Now * 2.f * PI * .8f);
-	for (const FWaypoint& Wp : ShownWaypoints)
+	for (const FWaypoint& Shown : ShownWaypoints)
 	{
+		// #103 (Nick's Session47): projected objective / generator / follow markers never sit on the squad row or the
+		// subtitle plate: an edge marker over the row's span is lifted above its flags; an on-screen one there fades to
+		// 20% (the radar still shows it).
+		FWaypoint Wp = Shown;
+		FPaint WP = P;
+		{
+			const bool bRow = View.RowRight > 0.f && Wp.Pos.X - 18.f <= View.RowRight + 16.f && Wp.Pos.Y + 18.f > View.RowFlagTop - 16.f;
+			const bool bSub = PrevSubtitleBox.bIsValid && PrevSubtitleBox.ExpandBy(12.f).IsInside(Wp.Pos);
+			if (!Wp.bOnScreen && bRow)
+			{
+				Wp.Pos.Y = View.RowFlagTop - 16.f - 18.f;
+			}
+			else if (Wp.bOnScreen && (bRow || bSub))
+			{
+				WP.Alpha *= .2f;
+			}
+		}
 		const FLinearColor Way = T::Neutral();
 		if (bFollow && !Wp.bOnScreen)
 		{
 			const FVector2D F(FMath::Cos(Wp.Angle), FMath::Sin(Wp.Angle));
 			const FLinearColor Lit = Way.CopyWithNewOpacity(FollowPulse);
-			P.Poly(Wp.Pos, { { 0, -9 }, { 9, 0 }, { 0, 9 }, { -9, 0 }, { 0, -9 } }, Lit, 3.f, 2.f);
-			P.Box(Wp.Pos.X - 2.5f, Wp.Pos.Y - 2.5f, 5.f, 5.f, Lit);
-			P.Chevron(Wp.Pos + F * 30.f, Wp.Angle, 22.f, Lit, true);
+			WP.Poly(Wp.Pos, { { 0, -9 }, { 9, 0 }, { 0, 9 }, { -9, 0 }, { 0, -9 } }, Lit, 3.f, 2.f);
+			WP.Box(Wp.Pos.X - 2.5f, Wp.Pos.Y - 2.5f, 5.f, 5.f, Lit);
+			WP.Chevron(Wp.Pos + F * 30.f, Wp.Angle, 22.f, Lit, true);
 			Rec(TEXT("waypoint_edge"), Wp.Pos.X - 18.f, Wp.Pos.Y - 18.f, 36.f, 36.f);
 			const FVector2D Label = ClearOfRow(Wp.Pos - F * 110.f, 110.f, 10.f, 18.f);
-			P.BackedWords(Label.X, Label.Y - 10.f, (FollowWord.IsEmpty() ? FString() : FollowWord + TEXT("  ")) + Range(Wp.Distance).ToUpper(), 17, Way, .5f, 40);
+			WP.BackedWords(Label.X, Label.Y - 10.f, (FollowWord.IsEmpty() ? FString() : FollowWord + TEXT("  ")) + Range(Wp.Distance).ToUpper(), 17, Way, .5f, 40);
 			Rec(TEXT("edge_label"), Label.X - 110.f, Label.Y - 11.f, 220.f, 29.f);
 			Area += 220.f * 44.f;
 			continue;
 		}
 		if (bFollow && Wp.bOnScreen && !Wp.bLifted)
 		{
-			P.Brackets(Wp.Pos, 26.f, Way.CopyWithNewOpacity(FollowPulse), 9.f);
+			WP.Brackets(Wp.Pos, 26.f, Way.CopyWithNewOpacity(FollowPulse), 9.f);
 		}
 		if (Wp.bOnScreen && Wp.bLifted)
 		{
 			// Dead ahead on a planet the pad sits behind the player's own ship: draw it just above the ship zone, range
 			// above the diamond, with a thin tether down to the true point (Lead, Nov 13).
 			const FVector2D At = Wp.DrawPos;
-			P.Line(At + FVector2D(0, 11), Wp.Pos, Way.CopyWithNewOpacity(.45f), 1.f);
-			P.Poly(At, { { 0, -11 }, { 11, 0 }, { 0, 11 }, { -11, 0 }, { 0, -11 } }, Way, 2.5f);
-			Rec(TEXT("waypoint"), At.X - 11.f, At.Y - 11.f, 22.f, 22.f);
-			P.Box(At.X - 1.5f, At.Y - 1.5f, 3.f, 3.f, Way);
+			WP.Line(At + FVector2D(0, 11), Wp.Pos, Way.CopyWithNewOpacity(.45f), 1.f);
+			WP.Poly(At, { { 0, -11 }, { 11, 0 }, { 0, 11 }, { -11, 0 }, { 0, -11 } }, Way, 2.5f);
+			if (WP.Alpha >= P.Alpha) Rec(TEXT("waypoint"), At.X - 11.f, At.Y - 11.f, 22.f, 22.f);
+			WP.Box(At.X - 1.5f, At.Y - 1.5f, 3.f, 3.f, Way);
 			// Range to the left (above it would sit on the arcs' lower ends, to the right on the power pip).
-			P.BackedWords(At.X - 18.f, At.Y - 9.f, Range(Wp.Distance), 14, Way, 1.f, 20);
+			WP.BackedWords(At.X - 18.f, At.Y - 9.f, Range(Wp.Distance), 14, Way, 1.f, 20);
 			if (Wp.Health >= 0.f)
 			{
-				P.Bar(At.X - 24.f, At.Y + 16.f, 48.f, 4.f, Wp.Health, T::Danger(), 1.f);
+				WP.Bar(At.X - 24.f, At.Y + 16.f, 48.f, 4.f, Wp.Health, T::Danger(), 1.f);
 			}
 			Area += 60.f * 60.f;
 		}
 		else if (Wp.bOnScreen)
 		{
-			P.Poly(Wp.Pos, { { 0, -11 }, { 11, 0 }, { 0, 11 }, { -11, 0 }, { 0, -11 } }, Way, 2.5f);
-			Rec(TEXT("waypoint"), Wp.Pos.X - 11.f, Wp.Pos.Y - 11.f, 22.f, 22.f);
-			P.Box(Wp.Pos.X - 1.5f, Wp.Pos.Y - 1.5f, 3.f, 3.f, Way);
-			P.BackedWords(Wp.Pos.X, Wp.Pos.Y + 16.f, Range(Wp.Distance), 14, Way, .5f, 20);
+			WP.Poly(Wp.Pos, { { 0, -11 }, { 11, 0 }, { 0, 11 }, { -11, 0 }, { 0, -11 } }, Way, 2.5f);
+			if (WP.Alpha >= P.Alpha) Rec(TEXT("waypoint"), Wp.Pos.X - 11.f, Wp.Pos.Y - 11.f, 22.f, 22.f);
+			WP.Box(Wp.Pos.X - 1.5f, Wp.Pos.Y - 1.5f, 3.f, 3.f, Way);
+			WP.BackedWords(Wp.Pos.X, Wp.Pos.Y + 16.f, Range(Wp.Distance), 14, Way, .5f, 20);
 			if (Wp.Health >= 0.f)
 			{
-				P.Bar(Wp.Pos.X - 24.f, Wp.Pos.Y - 22.f, 48.f, 4.f, Wp.Health, T::Danger(), 1.f);
+				WP.Bar(Wp.Pos.X - 24.f, Wp.Pos.Y - 22.f, 48.f, 4.f, Wp.Health, T::Danger(), 1.f);
 			}
 			Area += 60.f * 60.f;
 		}
@@ -2601,12 +2634,12 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 		{
 			// An edge diamond with a pointer notch toward the waypoint, and the range beside it.
 			const FVector2D F(FMath::Cos(Wp.Angle), FMath::Sin(Wp.Angle));
-			P.Poly(Wp.Pos, { { 0, -9 }, { 9, 0 }, { 0, 9 }, { -9, 0 }, { 0, -9 } }, Way, 2.5f);
+			WP.Poly(Wp.Pos, { { 0, -9 }, { 9, 0 }, { 0, 9 }, { -9, 0 }, { 0, -9 } }, Way, 2.5f);
 			Rec(TEXT("waypoint_edge"), Wp.Pos.X - 9.f, Wp.Pos.Y - 9.f, 18.f, 18.f);
-			P.Line(Wp.Pos + F * 11.f, Wp.Pos + F * 17.f, Way, 2.5f);
+			WP.Line(Wp.Pos + F * 11.f, Wp.Pos + F * 17.f, Way, 2.5f);
 			// The range sits inward of the diamond, clear of it (the planet capture had "5.1 km" over the diamond).
 			const FVector2D Label = ClearOfRow(Wp.Pos - F * 52.f, 40.f, 9.f, 14.f);
-			P.BackedWords(Label.X, Label.Y - 8.f, Range(Wp.Distance), 14, Way, .5f, 20);
+			WP.BackedWords(Label.X, Label.Y - 8.f, Range(Wp.Distance), 14, Way, .5f, 20);
 			Rec(TEXT("edge_label"), Label.X - 40.f, Label.Y - 9.f, 80.f, 23.f);
 			Area += 70.f * 40.f;
 		}
@@ -2639,7 +2672,16 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 	}
 	if (View.bHasLead)
 	{
-		P.Arc(View.Lead, 7.f, 1.f, T::Neutral().CopyWithNewOpacity(.9f), 2.f);
+		// #201 lock-on: the lead point in the flown ship's colour (where the bolts converge), a centre dot, and a thin tie back
+		// to the locked target's bracket so it reads as "shoot here for that one".
+		const FLinearColor LeadC = T::Ship(View.Flown);
+		if (View.bLeadTargetOnScreen && FVector2D::Distance(View.LeadTarget, View.Lead) > 14.f)
+		{
+			const FVector2D Dir = (View.Lead - View.LeadTarget).GetSafeNormal();
+			P.Line(View.LeadTarget + Dir * 10.f, View.Lead - Dir * 10.f, LeadC.CopyWithNewOpacity(.45f), 1.5f);
+		}
+		P.Arc(View.Lead, 9.f, 1.f, LeadC.CopyWithNewOpacity(.95f), 2.5f);
+		P.Box(View.Lead.X - 2.f, View.Lead.Y - 2.f, 4.f, 4.f, LeadC);
 		Rec(TEXT("lead"), View.Lead.X - 7.f, View.Lead.Y - 7.f, 14.f, 14.f);
 	}
 	// ---- wingmen off screen: hollow chevron in squad colour, pulsing at 1 Hz in trouble
@@ -2999,6 +3041,7 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 		// 78% (was 60%): the line must read over the bright nebula and over the squad row's colours.
 		P.Plate(X, SubY, PlateW, H, 8.f, T::Plate().CopyWithNewOpacity(.78f * Fade));
 		Rec(TEXT("subtitle"), X, SubY, PlateW, H);
+		LastSubtitleBox = FBox2D(FVector2D(X, SubY), FVector2D(X + PlateW, SubY + H));
 		Area += PlateW * H;
 		if (bStatic)
 		{

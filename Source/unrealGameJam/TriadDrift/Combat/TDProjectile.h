@@ -225,6 +225,26 @@ private:
 
 	ETDTeam Team = ETDTeam::Neutral;
 	uint32 LaunchSerial = 0;
+
+public:
+	/** #192 accuracy: the player's ship (0..2, 255 = not counted), its weapon slot, and the shot this one belongs to. */
+	uint8 StatShip = 255;
+	uint8 StatSlot = 0;
+	uint32 StatRoot = 0;
+	/** #192 aim assist: the target picked at launch, how far the shot has turned, and whether it still steers. */
+	bool IsAssisting() const { return bAssistOn; }
+	AActor* GetAssistTarget() const { return AssistTarget.Get(); }
+	float GetAssistTurnedDeg() const { return AssistTurnedDeg; }
+
+private:
+	void AcquireAssistTarget();
+	void UpdateAssist(float DeltaSeconds);
+	TWeakObjectPtr<AActor> AssistTarget;
+	float AssistTurnedDeg = 0.f;
+	/** #201: this shot's turn rate and bend cap after the pad / difficulty / td.Aim.* scales. */
+	float AssistTurnRateDeg = 0.f;
+	float AssistMaxTurnDeg = 0.f;
+	bool bAssistOn = false;
 	FVector PreviousLocation = FVector::ZeroVector;
 	double LastTransitTime = -1.0;
 

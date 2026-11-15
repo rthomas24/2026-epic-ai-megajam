@@ -1,6 +1,11 @@
 // Triad Drift - Combat (Teammate 2). Swept, pooled projectile.
 
 #include "TriadDrift/Combat/TDProjectile.h"
+#include "TriadDrift/Combat/TDAccuracyStats.h"
+#include "TriadDrift/Flight/TDShip.h"
+#include "HAL/IConsoleManager.h"
+#include "TriadDrift/Combat/TDAimAssist.h"
+#include "TriadDrift/Combat/TDTargetingComponent.h"
 #include "TriadDrift/Combat/TDCombatPerf.h"
 #include "TriadDrift/Combat/TDCombatCueLog.h"
 #include "TriadDrift/Combat/TDAudioHitTrace.h"
@@ -201,6 +206,10 @@ void ATDProjectile::Activate(const FTDProjectileSpec& InSpec, const FTransform& 
 	{
 		AcquireHomingTarget();
 	}
+	StatShip = 255;
+	StatSlot = 0;
+	StatRoot = 0;
+	AcquireAssistTarget();
 
 	UpdatePlaceholderLook();
 }
@@ -386,6 +395,8 @@ void ATDProjectile::Deflect(AActor* NewInstigator, FVector NewDirection, ETDTeam
 	{
 		return;
 	}
+	bAssistOn = false;
+	StatShip = 255;
 	const float Speed = FMath::Max(Velocity.Size(), Spec.Speed) * FMath::Max(SpeedMultiplier, 0.05f);
 	const FVector Dir = NewDirection.IsNearlyZero() ? -Velocity.GetSafeNormal() : NewDirection.GetSafeNormal();
 
@@ -668,6 +679,7 @@ void ATDProjectile::Step(float DeltaSeconds)
 	TrackingBlockedFor = FMath::Max(0.f, TrackingBlockedFor - DeltaSeconds);
 
 	UpdateHoming(DeltaSeconds);
+	UpdateAssist(DeltaSeconds);
 
 	const FVector Start = GetActorLocation();
 	PreviousLocation = Start;
@@ -962,6 +974,89 @@ void ATDProjectile::UpdateHoming(float DeltaSeconds)
 	Velocity = NewDir * Speed;
 }
 
+void ATDProjectile::AcquireAssistTarget()
+{
+	bAssistOn = false;
+	AssistTarget = nullptr;
+	AssistTurnedDeg = 0.f;
+	// #192 / #201: the Rift's and the Lancer's regular shots (weapon data with an assist cone) home gently on the player's
+	// soft lock. No lock, no homing; wingmen's shots and the Bastion's (no assist data) fly straight.
+	if (Spec.AssistConeDeg <= 0.f || Spec.bHoming || !FTDAimAssist::IsEnabled())
+	{
+		return;
+	}
+	AActor* Ship = Shooter.Get();
+	if (!FTDAimAssist::IsPlayerShip(Ship))
+	{
+		return;
+	}
+	const UTDTargetingComponent* Targeting = Ship->FindComponentByClass<UTDTargetingComponent>();
+	AActor* Lock = Targeting ? Targeting->GetCurrentTarget() : nullptr;
+	const float Speed = Velocity.Size();
+	if (!TDProjIsLiveTarget(Lock) || Speed <= KINDA_SMALL_NUMBER)
+	{
+		return;
+	}
+	const FVector To = Lock->GetActorLocation() - GetActorLocation();
+	const float Dist = To.Size();
+	const float Range = Spec.AssistRange > 0.f ? Spec.AssistRange : Spec.Range;
+	// The lock must be roughly where the shot is going (twice the weapon's cone, scaled): never a U-turn.
+	const float Cone = FMath::Min(Spec.AssistConeDeg * 2.f * FMath::Max(FTDAimAssist::Strength(Ship), .5f), 45.f);
+	if (Dist <= KINDA_SMALL_NUMBER || Dist > Range || FVector::DotProduct(To / Dist, Velocity / Speed) < FMath::Cos(FMath::DegreesToRadians(Cone)))
+	{
+		return;
+	}
+	AssistTurnRateDeg = Spec.AssistTurnRateDeg * FTDAimAssist::HomingTurnScale(Ship);
+	AssistMaxTurnDeg = FMath::Min(Spec.AssistMaxTurnDeg, FTDAimAssist::HomingMaxTurnDeg());
+	AssistTarget = Lock;
+	bAssistOn = AssistTurnRateDeg > 0.f && AssistMaxTurnDeg > 0.f;
+}
+
+void ATDProjectile::UpdateAssist(float DeltaSeconds)
+{
+	if (!bAssistOn)
+	{
+		return;
+	}
+	AActor* Target = AssistTarget.Get();
+	const UTDHealthComponent* Health = Target ? UTDStatics::GetHealth(Target) : nullptr;
+	// Dead, gone, cloaked or turned as far as allowed: straight from here on (no re-acquire, no orbiting).
+	if (!TDProjIsLiveTarget(Target) || (Health && !Health->bTargetable) || AssistTurnedDeg >= AssistMaxTurnDeg)
+	{
+		bAssistOn = false;
+		return;
+	}
+	const float Speed = Velocity.Size();
+	if (Speed <= KINDA_SMALL_NUMBER)
+	{
+		return;
+	}
+	const FVector CurrentDir = Velocity / Speed;
+	const FVector ToTarget = Target->GetActorLocation() - GetActorLocation();
+	if (FVector::DotProduct(ToTarget, CurrentDir) <= 0.f)
+	{
+		bAssistOn = false; // flew past it: never turn back
+		return;
+	}
+	const float TimeToTarget = ToTarget.Size() / Speed;
+	const FVector Predicted = Target->GetActorLocation() + Target->GetVelocity() * FMath::Min(TimeToTarget, 1.f) * .5f;
+	const FVector DesiredDir = (Predicted - GetActorLocation()).GetSafeNormal();
+	if (DesiredDir.IsNearlyZero())
+	{
+		return;
+	}
+	const float AngleDeg = FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp(FVector::DotProduct(CurrentDir, DesiredDir), -1.f, 1.f)));
+	const float StepDeg = FMath::Min3(AngleDeg, AssistTurnRateDeg * DeltaSeconds, AssistMaxTurnDeg - AssistTurnedDeg);
+	if (StepDeg <= KINDA_SMALL_NUMBER || AngleDeg <= KINDA_SMALL_NUMBER)
+	{
+		return;
+	}
+	const FQuat Full = FQuat::FindBetweenNormals(CurrentDir, DesiredDir);
+	const FVector NewDir = FQuat::Slerp(FQuat::Identity, Full, StepDeg / AngleDeg).RotateVector(CurrentDir).GetSafeNormal();
+	Velocity = NewDir * Speed; // same speed, same look: only the heading bends
+	AssistTurnedDeg += StepDeg;
+}
+
 void ATDProjectile::AcquireHomingTarget()
 {
 	UTDCombatRegistry* Registry = UTDCombatRegistry::Get(this);
@@ -1166,6 +1261,10 @@ void ATDProjectile::DealDamage(AActor* Victim, float Amount, const FVector& From
 	if (bReportHits && Health && Dealt > 0.f)
 	{
 		const bool bKill = bWasAlive && Health->IsDead();
+		if (StatShip < 3)
+		{
+			FTDAccuracyStats::NoteHit(StatShip, StatSlot, StatRoot != 0 ? StatRoot : LaunchSerial, bKill);
+		}
 		if (UTDEventBus* Bus = UTDEventBus::Get(this))
 		{
 			Bus->BroadcastHitConfirmed(Victim, bKill);
@@ -1258,6 +1357,7 @@ void ATDProjectile::SpawnShards(const FVector& Origin, const FVector& Direction,
 		return;
 	}
 	FTDProjectileSpec ShardSpec = Spec;
+	ShardSpec.AssistConeDeg = 0.f; // shards fly straight
 	ShardSpec.Damage = Spec.ShardDamage;
 	ShardSpec.ShardCount = 0;
 	ShardSpec.SplashRadius = 0.f;
@@ -1285,6 +1385,9 @@ void ATDProjectile::SpawnShards(const FVector& Origin, const FVector& Direction,
 		{
 			Shard->IgnoreActor = Ignore;
 			Shard->OriginalShooter = OriginalShooter;
+			Shard->StatShip = StatShip;
+			Shard->StatSlot = StatSlot;
+			Shard->StatRoot = StatRoot != 0 ? StatRoot : LaunchSerial;
 		}
 	}
 }

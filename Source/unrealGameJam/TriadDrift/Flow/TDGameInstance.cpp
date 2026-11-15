@@ -1,6 +1,7 @@
 // Triad Drift - game instance (ENG-19, C-03 #3). Owner: Teammate 5.
 
 #include "TriadDrift/Flow/TDGameInstance.h"
+#include "TriadDrift/Squad/TDSquadManager.h"
 #include "Sound/SoundBase.h"
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Input/TDSettingsSubsystem.h"
@@ -1023,6 +1024,12 @@ bool UTDGameInstance::WriteSaveSlot(bool bForce)
 	Save->Checkpoint.Progress.Takes = Progress.Takes;
 	Save->Checkpoint.Progress.Stats = Progress.Stats;
 	Save->Checkpoint.Progress.RunTimeSeconds = Progress.RunTimeSeconds;
+	// #103: Continue resumes in the ship the player was last flying (phase, wave and progress still from the checkpoint).
+	if (const ATDSquadManager* Squad = ATDSquadManager::Get(this); Squad && Squad->GetShip(Squad->GetActiveShipId()))
+	{
+		Progress.LastShip = Squad->GetActiveShipId();
+	}
+	Save->Checkpoint.Progress.LastShip = Progress.LastShip;
 	Save->SceneOrder = SceneOrder;
 	Save->SavedAtUtc = FDateTime::UtcNow();
 	Save->Difficulty = UTDDifficultySettings::GetCurrent();
