@@ -52,7 +52,7 @@ ATDGroundAlly::ATDGroundAlly()
 
 	UCharacterMovementComponent* Move = GetCharacterMovement();
 	Move->MaxWalkSpeed = RunSpeed;
-	Move->MaxAcceleration = 3200.f;
+	Move->MaxAcceleration = 5000.f;
 	Move->BrakingDecelerationWalking = 2600.f;
 	Move->GroundFriction = 8.f;
 	Move->AirControl = 0.5f;
@@ -510,7 +510,10 @@ bool ATDGroundAlly::MoveToward(const FVector& Goal, float StopRadius, bool bSpri
 		return false;
 	}
 	// Ease into the stop so the ally does not overshoot and shuffle.
-	Move->MaxWalkSpeed = FMath::Clamp((Dist - StopRadius) * 3.f + 160.f, 160.f, bSprint ? SprintSpeed : RunSpeed);
+	// Keeps pace with the pilot (their speed, plus what closes the gap) rather than trailing and catching up.
+	const ATDFirstPersonCharacter* Pace = State == ETDGroundAllyState::Follow ? GetLeader() : nullptr;
+	const float PaceSpeed = Pace ? (float)Pace->GetVelocity().Size2D() : 0.f;
+	Move->MaxWalkSpeed = FMath::Clamp(PaceSpeed + (Dist - StopRadius) * 3.f + 160.f, 160.f, bSprint ? SprintSpeed : FMath::Max(RunSpeed, PaceSpeed + 60.f));
 	FVector Dir = To / Dist;
 	// Feel the way: a wall ahead turns the ally along it; a low step ahead is jumped.
 	if (AvoidLeft <= 0.f)

@@ -45,6 +45,19 @@ static FAutoConsoleCommandWithWorldAndArgs CmdTDGroundAllyDown(TEXT("TD.Ground.A
 		}
 	}));
 
+static FAutoConsoleCommandWithWorldAndArgs CmdTDGroundAllySlot(TEXT("TD.Ground.AllySlot"),
+	TEXT("TD.Ground.AllySlot <BackCm> <SideCm>: where the followers stand relative to the pilot (negative back = ahead); dev tuning."),
+	FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+	{
+		UTDGroundSquadSubsystem* Squad = UTDGroundSquadSubsystem::Get(World);
+		if (Squad && Args.Num() >= 2)
+		{
+			Squad->SlotBack = FCString::Atof(*Args[0]);
+			Squad->SlotSide = FCString::Atof(*Args[1]);
+		}
+		UE_LOG(LogTriadDrift, Display, TEXT("TD.Ground.AllySlot: back %.0f side %.0f"), Squad ? Squad->SlotBack : 0.f, Squad ? Squad->SlotSide : 0.f);
+	}));
+
 UTDGroundSquadSubsystem* UTDGroundSquadSubsystem::Get(const UObject* WorldContextObject)
 {
 	const UWorld* World = GEngine ? GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::ReturnNull) : nullptr;

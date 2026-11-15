@@ -119,8 +119,8 @@ public:
 
 	/** Behind and to the side of the player (cm): abreast, a step back, so both are in the chase camera's frame edges
 	 *  and never ahead of the player or on the camera's centre line. */
-	float SlotBack = 40.f;
-	float SlotSide = 240.f;
+	float SlotBack = -90.f; // a step ahead of the pilot: whole in the chase camera's frame, either side of centre
+	float SlotSide = 215.f;
 	/** A wall within this of the player on either side (a corridor under about 4 m, a doorway): single file behind. */
 	float SingleFileHalfWidth = 200.f;
 	float SingleFileBack = 190.f;
