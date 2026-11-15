@@ -1049,7 +1049,9 @@ void ATDSquadManager::Tick(float DeltaSeconds)
 	if (T >= NextClaimScan)
 	{
 		NextClaimScan = T + 0.2;
-		if (const ATDShip* Active = GetActiveShip())
+		// Only for a player who is fighting: with no hit landed for td.Squad.Shadow.EarlyIdleSeconds the reticle claims
+		// nothing, so an idle player's wingmen can still finish what drifts in front of the nose (no stalemate).
+		if (const ATDShip* Active = (T - LastPlayerHitTime <= TDShadow::EarlyIdleSeconds()) ? GetActiveShip() : nullptr)
 		{
 			NotePlayerClaim(TDSquad::GetCurrentTarget(Active));
 			static TArray<AActor*> LockScratch; // game thread only
