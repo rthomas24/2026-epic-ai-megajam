@@ -543,3 +543,12 @@ Published sessions47–52: bounded shadow assault evidence; remaining projected-
 **Lead's mistakes today:** merged a dev command with an editor-only call, which broke the Shipping compile on main from 0e1684de to ba6515b2 (fixed 7bf9491a; packaging now Shipping-checks every main); earlier, took c9edb62a before its route walk and called the Cinder fix proven twice too early.
 
 **Needs Ryan first:** fly it with the mouse (aim assist feel, steering, whether Y was inverted); a controller on the package; the Cinder walk; the 5-6 s unresponsive window during first load. 28 issues open, no PRs.
+
+
+## Nick Lead completion checkpoint — November 15, 10:20 EST
+
+Reconciled the final Ryan handover against #210 and Nick acceptance lanes without repeating historical audits. This checkpoint supersedes the older blocker/owner descriptions above: source `f2237462` contains Ryan's delivered Cinder and saved-position recovery changes, while the original Session45 regression and final-record playback remain unperformed by Lead on that source. #103 cold last-flown ship and natural tactical timing are owner-proven; remaining appearance checks stay in #210.
+
+Private Build27 (`d6d62f96`, same game source) compiled successfully. Session54 preserved and hash-verified original input saves, then ended before gameplay to free the machine for Nicholas's Shipping playtest: normal exit 0, one HTTP socket-send error, no route verdict and no owned native process remaining. Native/build work waits for explicit confirmation that the human playtest is finished and the game closed. The owner launch-checked package is `playable-main-f2237462`.
+
+Swarm is explicitly decided not shipping enabled, retaining default 0; this is not a balance pass. One consolidated human-gates request is on #210, comment 6896694038. Lead priorities remain original Cinder save, complete New Game campaign, follower passage/boarding, then old-save final record. Shared changes here are coordination notes only, with all historical evidence and feature markers retained. No new production feature shipped, no final submission/package acceptance, and no change to human local work. Final shipped/omitted decisions will be appended after the remaining verification and package confirmation.
