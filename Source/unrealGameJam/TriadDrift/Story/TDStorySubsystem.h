@@ -84,6 +84,8 @@ public:
 	static FLinearColor SpeakerColor(ETDSpeaker Speaker);
 	/** On-screen seconds for an entry (Duration, or from the text length; at least the sound's length). */
 	static float SecondsFor(const FTDTransmission& Entry);
+	/** #135: keep the opening's isolated Don't subtitle-only; retain its shared master for the finale and timing. */
+	static bool ShouldPlayVoice(FName Id);
 
 	bool HasPlayed(FName Id) const;
 	/** Lines whose words are already on screen (the victory caption holds A5_DistressSignal's): their sound plays and

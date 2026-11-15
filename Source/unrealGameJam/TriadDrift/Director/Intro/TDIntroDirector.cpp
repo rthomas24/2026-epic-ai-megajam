@@ -1812,7 +1812,7 @@ void UTDIntroDirector::UpdateOverlay(float T)
 				if (LastOpeningLine != i)
 				{
 					LastOpeningLine = i;
-					if (USoundBase* Voice = E.Sound.LoadSynchronous()) // Nicholas's voice when it exists (DA_Story_Transmissions); none of ours
+					if (USoundBase* Voice = E.Sound.LoadSynchronous(); Voice && UTDStorySubsystem::ShouldPlayVoice(E.Id))
 					{
 						UGameplayStatics::PlaySound2D(this, Voice);
 					}

@@ -867,6 +867,13 @@ FLinearColor UTDStorySubsystem::SpeakerColor(ETDSpeaker Speaker)
 	}
 }
 
+bool UTDStorySubsystem::ShouldPlayVoice(FName Id)
+{
+	// Nicholas's #135 decision: no isolated opening VO while the surrounding dialogue is unvoiced.
+	// Gate playback by line, after source resolution; clearing Dont would also silence the finale.
+	return Id != TEXT("O_Unknown_Dont");
+}
+
 float UTDStorySubsystem::SecondsFor(const FTDTransmission& Entry)
 {
 	float Seconds = Entry.Duration > 0.f ? Entry.Duration : FMath::Clamp(1.6f + 0.055f * Entry.Text.ToString().Len(), 2.5f, 7.f);
@@ -1323,8 +1330,11 @@ void UTDStorySubsystem::StartNext()
 	if (USoundBase* Sound = OnAir.Sound.LoadSynchronous())
 	{
 		OnAirSeconds = SecondsFor(OnAir);
-		Voice = UGameplayStatics::SpawnSound2D(this, Sound);
-		UE_LOG(LogTriadDrift, Log, TEXT("TD.Story: voice %s plays %s"), *OnAir.Id.ToString(), *Sound->GetPathName());
+		if (ShouldPlayVoice(OnAir.Id))
+		{
+			Voice = UGameplayStatics::SpawnSound2D(this, Sound);
+			UE_LOG(LogTriadDrift, Log, TEXT("TD.Story: voice %s plays %s"), *OnAir.Id.ToString(), *Sound->GetPathName());
+		}
 	}
 	if (SoundOnly.Contains(OnAir.Id))
 	{
