@@ -44,25 +44,27 @@ bool FTDCameraModePersist::RunTest(const FString& Parameters)
 	FTDTestWorld W;
 	UTDSettingsSubsystem* S = TDSettingsPageTest::Fresh(W);
 	if (!TestNotNull(TEXT("settings"), S)) { return false; }
+	const ETDOnFootCamera DefaultMode = FTDPlayerSettings().OnFootCameraMode;
+	const ETDOnFootCamera OtherMode = DefaultMode == ETDOnFootCamera::FirstPerson ? ETDOnFootCamera::ThirdPerson : ETDOnFootCamera::FirstPerson;
 	ON_SCOPE_EXIT { UGameplayStatics::DeleteGameInSlot(TDSettingsPageTest::Slot, 0); };
 	UTDSettingsEventCounter* Counter = NewObject<UTDSettingsEventCounter>();
 	Counter->AddToRoot();
 	ON_SCOPE_EXIT { S->OnOnFootCameraModeChanged.RemoveAll(Counter); Counter->RemoveFromRoot(); };
 	S->OnOnFootCameraModeChanged.AddDynamic(Counter, &UTDSettingsEventCounter::HandleCameraMode);
 
-	TestEqual(TEXT("default: first person"), S->GetOnFootCameraMode(), ETDOnFootCamera::FirstPerson);
+	TestEqual(TEXT("configured default camera"), S->GetOnFootCameraMode(), DefaultMode);
 	S->ToggleOnFootCameraMode();
-	TestEqual(TEXT("toggle: third person"), S->GetOnFootCameraMode(), ETDOnFootCamera::ThirdPerson);
+	TestEqual(TEXT("toggle: opposite camera"), S->GetOnFootCameraMode(), OtherMode);
 	TestEqual(TEXT("one broadcast"), Counter->CameraChanges, 1);
-	TestEqual(TEXT("broadcast carries the mode"), Counter->LastMode, ETDOnFootCamera::ThirdPerson);
-	S->SetOnFootCameraMode(ETDOnFootCamera::ThirdPerson);
+	TestEqual(TEXT("broadcast carries the mode"), Counter->LastMode, OtherMode);
+	S->SetOnFootCameraMode(OtherMode);
 	TestEqual(TEXT("no broadcast without a change"), Counter->CameraChanges, 1);
 
 	S->ReloadForTests(); // a restart / level travel reads it back
-	TestEqual(TEXT("persisted: third person"), S->GetOnFootCameraMode(), ETDOnFootCamera::ThirdPerson);
+	TestEqual(TEXT("persisted: opposite camera"), S->GetOnFootCameraMode(), OtherMode);
 
 	S->ResetToDefaults();
-	TestEqual(TEXT("reset: first person"), S->GetOnFootCameraMode(), ETDOnFootCamera::FirstPerson);
+	TestEqual(TEXT("reset: configured default camera"), S->GetOnFootCameraMode(), DefaultMode);
 	TestEqual(TEXT("reset broadcasts the change"), Counter->CameraChanges, 2);
 	return true;
 }
@@ -74,6 +76,8 @@ bool FTDSettingsPageKeys::RunTest(const FString& Parameters)
 	FTDTestWorld W;
 	UTDSettingsSubsystem* S = TDSettingsPageTest::Fresh(W);
 	if (!TestNotNull(TEXT("settings"), S)) { return false; }
+	const ETDOnFootCamera DefaultMode = FTDPlayerSettings().OnFootCameraMode;
+	const ETDOnFootCamera OtherMode = DefaultMode == ETDOnFootCamera::FirstPerson ? ETDOnFootCamera::ThirdPerson : ETDOnFootCamera::FirstPerson;
 	ON_SCOPE_EXIT { UGameplayStatics::DeleteGameInSlot(TDSettingsPageTest::Slot, 0); };
 	const ETDDifficulty WasDifficulty = UTDDifficultySettings::GetCurrent();
 	ON_SCOPE_EXIT { UTDDifficultySettings::SetCurrent(WasDifficulty); };
@@ -111,7 +115,7 @@ bool FTDSettingsPageKeys::RunTest(const FString& Parameters)
 		TestNotEqual(*FString::Printf(TEXT("%s: pad A changes it too"), *Label), M.RowValue(Row).ToString(), V0);
 	}
 	const FTDPlayerSettings& P = S->GetSettings();
-	TestEqual(TEXT("camera row reached the setting"), P.OnFootCameraMode, ETDOnFootCamera::ThirdPerson);
+	TestEqual(TEXT("camera row reached the setting"), P.OnFootCameraMode, OtherMode);
 	TestEqual(TEXT("mouse row reached the setting"), P.MouseSensitivity, 1.25f);
 	TestTrue(TEXT("invert mouse row reached the setting"), P.bInvertMouseY);
 	TestFalse(TEXT("hints row reached the setting"), P.bHintsEnabled);
@@ -124,7 +128,7 @@ bool FTDSettingsPageKeys::RunTest(const FString& Parameters)
 	M.Select((int32)ETDSettingsRow::Reset);
 	TestEqual(TEXT("Enter on Reset"), M.HandleKey(EKeys::Enter), EKR::Handled);
 	TestEqual(TEXT("reset: mouse back to 1x"), S->GetSettings().MouseSensitivity, 1.f);
-	TestEqual(TEXT("reset: first person"), S->GetSettings().OnFootCameraMode, ETDOnFootCamera::FirstPerson);
+	TestEqual(TEXT("reset: configured default camera"), S->GetSettings().OnFootCameraMode, DefaultMode);
 	M.Select((int32)ETDSettingsRow::Back);
 	TestEqual(TEXT("A on Back closes"), M.HandleKey(EKeys::Gamepad_FaceButton_Bottom), EKR::Close);
 	TestEqual(TEXT("Escape closes"), M.HandleKey(EKeys::Escape), EKR::Close);
@@ -154,6 +158,8 @@ bool FTDOnFootToggleKeys::RunTest(const FString& Parameters)
 	FTDTestWorld W;
 	UTDSettingsSubsystem* S = TDSettingsPageTest::Fresh(W);
 	if (!TestNotNull(TEXT("settings"), S)) { return false; }
+	const ETDOnFootCamera DefaultMode = FTDPlayerSettings().OnFootCameraMode;
+	const ETDOnFootCamera OtherMode = DefaultMode == ETDOnFootCamera::FirstPerson ? ETDOnFootCamera::ThirdPerson : ETDOnFootCamera::FirstPerson;
 	ON_SCOPE_EXIT { UGameplayStatics::DeleteGameInSlot(TDSettingsPageTest::Slot, 0); };
 
 	// In space: V is the cockpit camera, never the on-foot mode.
@@ -167,12 +173,12 @@ bool FTDOnFootToggleKeys::RunTest(const FString& Parameters)
 	FTDTestWorld::InjectKey(PC, EKeys::V, false);
 	W.Tick();
 	TestTrue(TEXT("space: V toggles the cockpit view"), Ship->IsCockpitView());
-	TestEqual(TEXT("space: V leaves the on-foot camera alone"), S->GetOnFootCameraMode(), ETDOnFootCamera::FirstPerson);
+	TestEqual(TEXT("space: V leaves the on-foot camera alone"), S->GetOnFootCameraMode(), DefaultMode);
 	FTDTestWorld::InjectKey(PC, EKeys::Gamepad_Special_Left, true);
 	W.Tick();
 	FTDTestWorld::InjectKey(PC, EKeys::Gamepad_Special_Left, false);
 	W.Tick();
-	TestEqual(TEXT("space: View leaves it alone too"), S->GetOnFootCameraMode(), ETDOnFootCamera::FirstPerson);
+	TestEqual(TEXT("space: View leaves it alone too"), S->GetOnFootCameraMode(), DefaultMode);
 
 	// On foot: V and View toggle it.
 	ATDFirstPersonCharacter* Pilot = W.Spawn<ATDFirstPersonCharacter>(FVector(0.f, 0.f, 95.f));
@@ -182,12 +188,12 @@ bool FTDOnFootToggleKeys::RunTest(const FString& Parameters)
 	W.Tick();
 	FTDTestWorld::InjectKey(PC, EKeys::V, false);
 	W.Tick();
-	TestEqual(TEXT("on foot: V switches to third person"), S->GetOnFootCameraMode(), ETDOnFootCamera::ThirdPerson);
+	TestEqual(TEXT("on foot: V switches to opposite camera"), S->GetOnFootCameraMode(), OtherMode);
 	FTDTestWorld::InjectKey(PC, EKeys::Gamepad_Special_Left, true);
 	W.Tick();
 	FTDTestWorld::InjectKey(PC, EKeys::Gamepad_Special_Left, false);
 	W.Tick();
-	TestEqual(TEXT("on foot: View switches back"), S->GetOnFootCameraMode(), ETDOnFootCamera::FirstPerson);
+	TestEqual(TEXT("on foot: View switches back"), S->GetOnFootCameraMode(), DefaultMode);
 
 	// Back in the ship: V is the cockpit again.
 	PC->Possess(Ship);
@@ -196,7 +202,7 @@ bool FTDOnFootToggleKeys::RunTest(const FString& Parameters)
 	W.Tick();
 	FTDTestWorld::InjectKey(PC, EKeys::V, false);
 	W.Tick();
-	TestEqual(TEXT("re-boarded: V no longer changes the on-foot camera"), S->GetOnFootCameraMode(), ETDOnFootCamera::FirstPerson);
+	TestEqual(TEXT("re-boarded: V no longer changes the on-foot camera"), S->GetOnFootCameraMode(), DefaultMode);
 	return true;
 }
 
