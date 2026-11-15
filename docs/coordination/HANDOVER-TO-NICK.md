@@ -170,7 +170,7 @@ New Game confirm with a save present. Earlier prereleases: `playable-main-cf4ed8
 
 **T2's notes (aim assist and HUD checks):** all aim cvars are in `Combat/TDAimAssist.cpp` (`td.Aim.Enabled`,
 `LockConeDeg` 16, `ConvergeDeg` 15, `TurnScale` 2, `MaxTurnDeg` 45, `PadScale` 1.35, `StoryScale` 1.3, `AceScale`
-0.75). Headless test, no graphics card, about 90 s: `.\Tools	d-test.ps1 -Filter TDCombat.AimAssist.HitRate -ShowLog`
+0.75). Headless test, no graphics card, about 90 s: `Tools/td-test.ps1 -Filter TDCombat.AimAssist.HitRate -ShowLog`
 then search the log for `AIMRATE` (now Rift 7 to 56%, Lancer 3 to 51%, Bastion 23 to 33%). To try values without a
 rebuild put them under `[ConsoleVariables]` in `Saved/Config/WindowsEditor/Engine.ini`. `TD.Weapons.Accuracy [reset]`
 counts live accuracy. `TD.UI.Tactical [s]` shows the tactical panel, `TD.UI.Caption <s> <text>` any caption. Never
