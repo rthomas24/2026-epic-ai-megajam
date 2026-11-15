@@ -46,14 +46,20 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Ally|Health") float ReviveHealth01 = 0.5f;
 
 	/** Share of the player's light-combo damage (the blade component's LightCombo numbers). */
-	UPROPERTY(EditAnywhere, Category = "Ally|Fight") float DamageScale = 0.6f;
+	UPROPERTY(EditAnywhere, Category = "Ally|Fight") float DamageScale = 0.35f;
 	/** Enemies farther than this from the ally are not picked. */
 	UPROPERTY(EditAnywhere, Category = "Ally|Fight", meta = (Units = "cm")) float EngageRange = 1500.f;
 	/** A fight is dropped when the player is farther than this (the ally comes back). */
 	UPROPERTY(EditAnywhere, Category = "Ally|Fight", meta = (Units = "cm")) float LeashRange = 2200.f;
 	/** Pause between swings (random in the range); after the third hit of a combo, ComboRest. */
-	UPROPERTY(EditAnywhere, Category = "Ally|Fight") FVector2D SwingGap = FVector2D(0.7f, 1.2f);
-	UPROPERTY(EditAnywhere, Category = "Ally|Fight", meta = (Units = "s")) float ComboRest = 1.6f;
+	UPROPERTY(EditAnywhere, Category = "Ally|Fight") FVector2D SwingGap = FVector2D(1.3f, 1.8f);
+	UPROPERTY(EditAnywhere, Category = "Ally|Fight", meta = (Units = "s")) float ComboRest = 2.2f;
+	/** The player finishes fights: a follower never lands the killing blow on a Heavy, a Warden, a named (future) crew
+	 *  or the last enemy standing near the player; it leaves that enemy on FinishHull and keeps it busy. */
+	UPROPERTY(EditAnywhere, Category = "Ally|Fight") bool bLeaveFinishers = true;
+	UPROPERTY(EditAnywhere, Category = "Ally|Fight") float FinishHull = 1.f;
+	/** Score handicap (cm) on the enemy nearest the player: that one is the player's. */
+	UPROPERTY(EditAnywhere, Category = "Ally|Fight", meta = (Units = "cm")) float PlayersEnemyHandicap = 900.f;
 	/** The hit lands this long into the swing clip (as the player's HitDelay). */
 	UPROPERTY(EditAnywhere, Category = "Ally|Fight", meta = (Units = "s")) float HitDelay = 0.12f;
 	/** Chance a bolt arriving in the front arc is turned aside (no damage), and the rest between two. */
@@ -121,6 +127,8 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Ally") TObjectPtr<UTDHealthComponent> Health;
 	UPROPERTY(Transient) TObjectPtr<UStaticMeshComponent> BladeBeam;
 	UPROPERTY(Transient) TArray<TObjectPtr<UStaticMeshComponent>> SuitAccents;
+	/** The pilot's own suit (Gameplay/Characters/Pilot/MI_Pilot_<Pilot>, an always-cooked folder); null: the shared suit. */
+	UPROPERTY(Transient) TObjectPtr<class UMaterialInterface> SuitMaterial;
 	UPROPERTY(Transient) TMap<FName, TObjectPtr<UAnimSequenceBase>> Clips;
 
 private:
@@ -139,6 +147,8 @@ private:
 	void PickTarget(ATDFirstPersonCharacter* Leader);
 	bool IsTargetUsable(const AActor* Target, const ATDFirstPersonCharacter* Leader, float Slack) const;
 	bool HasClearLine(const AActor* To) const;
+	/** This enemy is the player's to finish (see bLeaveFinishers). */
+	bool IsPlayersToFinish(const AActor* Target) const;
 	/** Walk toward Goal (stops inside StopRadius). Returns true while it wants to move. */
 	bool MoveToward(const FVector& Goal, float StopRadius, bool bSprint, float DeltaSeconds);
 	/** A point off the player's path / interact line if the ally stands on it. */

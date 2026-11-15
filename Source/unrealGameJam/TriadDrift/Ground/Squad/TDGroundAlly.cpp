@@ -22,6 +22,8 @@
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Engine/StaticMesh.h"
 #include "Engine/CollisionProfile.h"
+#include "Misc/PackageName.h"
+#include "Materials/MaterialInterface.h"
 #include "Engine/World.h"
 
 ATDGroundAlly::ATDGroundAlly()
@@ -158,9 +160,19 @@ void ATDGroundAlly::ApplyLook()
 		}
 		bLookApplied = true;
 	}
+	// The pilot's own suit when the animation builder's instance is on disk (MI_Pilot_Wren / _Kato / _Moss; the folder
+	// is always cooked, so a load by name ships). Then the lit plates are not needed.
+	const FString SuitPackage = FString::Printf(TEXT("/Game/TriadDrift/Gameplay/Characters/Pilot/MI_Pilot_%s"), *Pilot.ToString());
+	SuitMaterial = (FindPackage(nullptr, *SuitPackage) || FPackageName::DoesPackageExist(SuitPackage))
+		? LoadObject<UMaterialInterface>(nullptr, *FString::Printf(TEXT("%s.MI_Pilot_%s"), *SuitPackage, *Pilot.ToString()), nullptr, LOAD_Quiet | LOAD_NoWarn) : nullptr;
+	if (SuitMaterial)
+	{
+		Body->SetMaterial(0, SuitMaterial);
+	}
 	for (UStaticMeshComponent* C : SuitAccents)
 	{
 		UTDStatics::TintPlaceholder(C, Color, 2.2f);
+		C->SetVisibility(SuitMaterial == nullptr);
 	}
 	for (int32 i = 0; i < Body->GetNumMaterials(); ++i)
 	{
@@ -302,6 +314,18 @@ void ATDGroundAlly::UpdateCameraFade()
 	{
 		bBodyHidden = bInside;
 		GetMesh()->SetVisibility(!bInside, true);
+		if (!bInside)
+		{
+			// Showing everything again must not bring back what was off on purpose.
+			for (UStaticMeshComponent* C : SuitAccents)
+			{
+				if (C) { C->SetVisibility(SuitMaterial == nullptr); }
+			}
+			if (BladeBeam && IsDown())
+			{
+				BladeBeam->SetVisibility(false);
+			}
+		}
 	}
 }
 
@@ -561,6 +585,35 @@ bool ATDGroundAlly::IsTargetUsable(const AActor* Target, const ATDFirstPersonCha
 		&& FMath::Abs(At.Z - GetActorLocation().Z) <= 450.f;
 }
 
+bool ATDGroundAlly::IsPlayersToFinish(const AActor* Target) const
+{
+	if (const ATDCrewCharacter* Crew = Cast<ATDCrewCharacter>(Target))
+	{
+		if (Crew->CrewType == ETDCrewType::Heavy || Crew->CrewType == ETDCrewType::Warden || Crew->CrewType == ETDCrewType::FutureCrew)
+		{
+			return true;
+		}
+	}
+	// The last one standing near the player.
+	const UTDCombatRegistry* Registry = UTDCombatRegistry::Get(this);
+	const ATDFirstPersonCharacter* Leader = GetLeader();
+	if (!Registry || !Leader)
+	{
+		return false;
+	}
+	TArray<AActor*> Hostiles;
+	Registry->GetHostilesOf(ETDTeam::Player, Hostiles, true);
+	int32 Standing = 0;
+	for (const AActor* H : Hostiles)
+	{
+		if (H && H->IsA<APawn>() && FVector::Dist(H->GetActorLocation(), Leader->GetActorLocation()) < 4000.f)
+		{
+			++Standing;
+		}
+	}
+	return Standing <= 1;
+}
+
 void ATDGroundAlly::PickTarget(ATDFirstPersonCharacter* Leader)
 {
 	// Keep the one being fought while it stays in reach (a little slack so it does not flicker at the edge).
@@ -587,6 +640,18 @@ void ATDGroundAlly::PickTarget(ATDFirstPersonCharacter* Leader)
 	Registry->GetHostilesOf(ETDTeam::Player, Hostiles);
 	AActor* Best = nullptr;
 	float BestScore = TNumericLimits<float>::Max();
+	// The enemy nearest the player is the player's: taken only when it is the only one.
+	const AActor* PlayersEnemy = nullptr;
+	float PlayersBest = TNumericLimits<float>::Max();
+	for (const AActor* H : Hostiles)
+	{
+		const float D = H && H->IsA<APawn>() ? (float)FVector::Dist(H->GetActorLocation(), Leader->GetActorLocation()) : TNumericLimits<float>::Max();
+		if (D < PlayersBest)
+		{
+			PlayersBest = D;
+			PlayersEnemy = H;
+		}
+	}
 	for (AActor* H : Hostiles)
 	{
 		if (!H || !H->IsA<APawn>() || !IsTargetUsable(H, Leader, 1.f) || (IgnoreTargetLeft > 0.f && H == IgnoredTarget.Get()))
@@ -598,6 +663,10 @@ void ATDGroundAlly::PickTarget(ATDFirstPersonCharacter* Leader)
 		if (Squad->IsTargetTaken(H, this))
 		{
 			Score += 100000.f;
+		}
+		if (H == PlayersEnemy)
+		{
+			Score += PlayersEnemyHandicap;
 		}
 		if (Score < BestScore && HasClearLine(H))
 		{
@@ -705,7 +774,12 @@ void ATDGroundAlly::LandSwing()
 	const FVector HitAt = Target->GetActorLocation() - Dir * Target->GetSimpleCollisionRadius();
 	// No instigator on purpose (the causer carries the team): the kill is nobody's, so the director's money shots,
 	// the kill stats, the pilot's own kill barks, hit-stop and hit markers never come from a follower's blade.
-	const float Dealt = UTDStatics::ApplyTDDamage(Target, Swing.Damage * DamageScale, ETDDamageKind::Melee, nullptr, this, HitAt, Dir);
+	float Damage = Swing.Damage * DamageScale;
+	if (bLeaveFinishers && IsPlayersToFinish(Target))
+	{
+		Damage = FMath::Min(Damage, TH->GetHull() + TH->GetShield() - FinishHull); // held on its last point: the player's kill
+	}
+	const float Dealt = Damage > 0.f ? UTDStatics::ApplyTDDamage(Target, Damage, ETDDamageKind::Melee, nullptr, this, HitAt, Dir) : 0.f;
 	if (Dealt > 0.f)
 	{
 		++SwingsLanded;

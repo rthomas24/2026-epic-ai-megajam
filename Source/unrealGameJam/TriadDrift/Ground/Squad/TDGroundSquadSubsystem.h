@@ -121,6 +121,10 @@ public:
 	 *  and never ahead of the player or on the camera's centre line. */
 	float SlotBack = 40.f;
 	float SlotSide = 240.f;
+	/** A wall within this of the player on either side (a corridor under about 4 m, a doorway): single file behind. */
+	float SingleFileHalfWidth = 200.f;
+	float SingleFileBack = 190.f;
+	float SingleFileGap = 150.f;
 	/** How fast the formation frame follows the view (deg/s): slow, so a flick of the camera does not swing the squad round. */
 	float FormationTurnRate = 70.f;
 

@@ -121,17 +121,20 @@ FVector UTDGroundSquadSubsystem::GetFormationSlot(int32 Slot) const
 	const FRotator Frame(0.f, FormationYaw, 0.f);
 	const FVector From = L->GetActorLocation();
 	FVector Want = From + Frame.RotateVector(FVector(-SlotBack, Slot == 0 ? -SlotSide : SlotSide, 0.f));
-	// A wall between the player and the slot (a corridor narrower than the formation): tuck in behind instead.
+	// Narrow ground (a corridor under about 4 m, a doorway, a wall on either side): single file behind the player.
 	FHitResult Hit;
 	FCollisionQueryParams Params(SCENE_QUERY_STAT(TDGroundSquadSlot), false, L);
 	const FCollisionObjectQueryParams Solid(ECC_WorldStatic);
-	if (World->LineTraceSingleByObjectType(Hit, From, Want, Solid, Params))
+	const FVector SideReach = Frame.RotateVector(FVector(0.f, SingleFileHalfWidth, 0.f));
+	const bool bNarrow = World->LineTraceSingleByObjectType(Hit, From, From - SideReach, Solid, Params)
+		|| World->LineTraceSingleByObjectType(Hit, From, From + SideReach, Solid, Params)
+		|| World->LineTraceSingleByObjectType(Hit, From, Want, Solid, Params);
+	if (bNarrow)
 	{
-		const float Side = FMath::Max(0.f, Hit.Distance - 70.f) * (Slot == 0 ? -1.f : 1.f) * 0.3f;
-		Want = From + Frame.RotateVector(FVector(-(SlotBack + 90.f + Slot * 130.f), Side, 0.f));
+		Want = From + Frame.RotateVector(FVector(-(SingleFileBack + Slot * SingleFileGap), 0.f, 0.f));
 		if (World->LineTraceSingleByObjectType(Hit, From, Want, Solid, Params))
 		{
-			Want = Hit.ImpactPoint + (From - Want).GetSafeNormal() * 60.f;
+			Want = Hit.ImpactPoint + (From - Want).GetSafeNormal() * 60.f; // a wall close behind: as far back as there is room
 		}
 	}
 	return Want;
