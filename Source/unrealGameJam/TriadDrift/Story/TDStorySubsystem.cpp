@@ -1595,9 +1595,35 @@ void UTDStorySubsystem::TakeCarriedLines()
 		ClearCarriedLines(); // a menu, or another run: never replay the last run's radio
 		return;
 	}
+	// Lead: space chatter never plays on a planet's surface. A carried Aftermath line waits for the next galaxy load (the
+	// Aftermath resume there queues its unheard lines again); a line whose only point is to send the squad to the planet
+	// they have now reached is marked heard and dropped.
+	const bool bInSpace = ATDGalaxyLayout::Get(this) != nullptr;
+	static const TSet<FName> ToThePlanet = { TEXT("S2_Kato_Vectors"), TEXT("S2_Kato_Planetside"), TEXT("S2_Kato_Coordinated"),
+		TEXT("S2_Command_Outpost"), TEXT("S2_Moss_FindOut"), TEXT("S2_Command_Orders"), TEXT("S2_Wren_FormUp") };
+	const TArray<FName>& AftermathIds = SequenceIds(TEXT("Aftermath"));
+	int32 Waiting = 0;
+	int32 Dropped = 0;
 	for (const FName& Id : TDStoryCarry::Pending)
 	{
+		if (!bInSpace && AftermathIds.Contains(Id))
+		{
+			if (ToThePlanet.Contains(Id))
+			{
+				MarkPlayed(Id);
+				++Dropped;
+			}
+			else
+			{
+				++Waiting;
+			}
+			continue;
+		}
 		FireTransmission(Id);
+	}
+	if (Waiting + Dropped > 0)
+	{
+		UE_LOG(LogTriadDrift, Log, TEXT("TD.Story: on a planet: %d Aftermath line(s) wait for the galaxy, %d dropped (the squad is already here)"), Waiting, Dropped);
 	}
 	UE_LOG(LogTriadDrift, Log, TEXT("TD.Story: %d carried line(s) resume after the arrival"), TDStoryCarry::Pending.Num());
 	TDStoryCarry::Pending.Reset();
