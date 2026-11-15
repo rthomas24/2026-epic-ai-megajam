@@ -117,9 +117,10 @@ public:
 	virtual bool DoesSupportWorldType(const EWorldType::Type WorldType) const override;
 	virtual void Deinitialize() override;
 
-	/** Behind and to the side of the player (cm). */
-	float SlotBack = 160.f;
-	float SlotSide = 300.f;
+	/** Behind and to the side of the player (cm): abreast, a step back, so both are in the chase camera's frame edges
+	 *  and never ahead of the player or on the camera's centre line. */
+	float SlotBack = 40.f;
+	float SlotSide = 240.f;
 	/** How fast the formation frame follows the view (deg/s): slow, so a flick of the camera does not swing the squad round. */
 	float FormationTurnRate = 70.f;
 

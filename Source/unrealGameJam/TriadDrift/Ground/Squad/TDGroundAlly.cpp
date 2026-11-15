@@ -121,6 +121,14 @@ void ATDGroundAlly::ApplyLook()
 		{
 			Body->SetCastShadow(true);
 			BladeBeam = TDFutureCrew::AttachBlade(this, Body, Color);
+			// The player's own beam (core and glow shell, #163) when it is on disk: the same blade, another colour.
+			UStaticMesh* V2 = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/TriadDrift/Gameplay/Props/Blade/SM_TD_BladeBeam_V2.SM_TD_BladeBeam_V2"), nullptr, LOAD_Quiet | LOAD_NoWarn);
+			if (BladeBeam && V2 && BladeBeam->GetStaticMesh() && BladeBeam->GetStaticMesh()->GetName() == TEXT("SM_TD_BladeBeam"))
+			{
+				BladeBeam->SetStaticMesh(V2);
+				const float Authored = FMath::Max(1.f, (float)V2->GetBoundingBox().GetSize().X);
+				BladeBeam->SetRelativeScale3D(FVector(GetDefault<ATDFirstPersonCharacter>()->HandBladeLength / Authored, 1.f, 1.f));
+			}
 		}
 		// The suit's squad colour. The pilot material has no tint parameter today (textures only), so the colour is
 		// worn as lit shoulder plates and a back light; the parameters below take over the moment the material gets them.
@@ -159,14 +167,14 @@ void ATDGroundAlly::ApplyLook()
 		if (UMaterialInstanceDynamic* MID = Body->CreateDynamicMaterialInstance(i))
 		{
 			MID->SetVectorParameterValue(TEXT("SuitTint"), Color);
-			MID->SetVectorParameterValue(TEXT("AccentColor"), Color);
+			MID->SetVectorParameterValue(TEXT("SuitAccent"), Color);
 		}
 	}
 	if (BladeBeam)
 	{
 		for (int32 i = 0; i < BladeBeam->GetNumMaterials(); ++i)
 		{
-			if (UMaterialInstanceDynamic* MID = Cast<UMaterialInstanceDynamic>(BladeBeam->GetMaterial(i)))
+			if (UMaterialInstanceDynamic* MID = BladeBeam->CreateDynamicMaterialInstance(i))
 			{
 				MID->SetVectorParameterValue(TEXT("BladeColor"), Color);
 			}
@@ -254,6 +262,20 @@ void ATDGroundAlly::UpdateBody(float DeltaSeconds)
 	if (Loop)
 	{
 		Loops->SetLoop(Loop, Rate);
+	}
+	// The closed hand on the hilt. The loop player only closes it for the player's own pawn class, so it is fed from
+	// here each frame (it eases back out by itself if this stops).
+	if (BladeBeam)
+	{
+		if (!Loops->GripPose && !Loops->bGripPoseTried)
+		{
+			Loops->bGripPoseTried = true;
+			Loops->GripPose = Loops->GripPoseAsset.IsNull() ? nullptr : TDLoadPlayableAnim(Loops->GripPoseAsset.ToSoftObjectPath());
+		}
+		if (Loops->GripPose)
+		{
+			Loops->GripAlpha = 1.f;
+		}
 	}
 	const int32 Gait = bAir ? -1 : Want;
 	if (Gait != LastGait)
@@ -544,11 +566,16 @@ void ATDGroundAlly::PickTarget(ATDFirstPersonCharacter* Leader)
 	// Keep the one being fought while it stays in reach (a little slack so it does not flicker at the edge).
 	if (AActor* Current = FightTarget.Get())
 	{
-		if (IsTargetUsable(Current, Leader, 1.2f))
+		// Two on one: the second ally looks again, and moves to an enemy nobody is on if there is one.
+		const bool bShared = Slot != 0 && GetSquad() && GetSquad()->IsTargetTaken(Current, this) && PendingHitLeft < 0.f;
+		if (IsTargetUsable(Current, Leader, 1.2f) && !bShared)
 		{
 			return;
 		}
-		FightTarget = nullptr;
+		if (!IsTargetUsable(Current, Leader, 1.2f))
+		{
+			FightTarget = nullptr;
+		}
 	}
 	const UTDCombatRegistry* Registry = UTDCombatRegistry::Get(this);
 	const UTDGroundSquadSubsystem* Squad = GetSquad();
@@ -578,7 +605,7 @@ void ATDGroundAlly::PickTarget(ATDFirstPersonCharacter* Leader)
 			Best = H;
 		}
 	}
-	if (Best)
+	if (Best && Best != FightTarget.Get())
 	{
 		FightTarget = Best;
 		if (UTDGroundSquadSubsystem* Mine = GetSquad())

@@ -52,8 +52,8 @@ public:
 	/** A fight is dropped when the player is farther than this (the ally comes back). */
 	UPROPERTY(EditAnywhere, Category = "Ally|Fight", meta = (Units = "cm")) float LeashRange = 2200.f;
 	/** Pause between swings (random in the range); after the third hit of a combo, ComboRest. */
-	UPROPERTY(EditAnywhere, Category = "Ally|Fight") FVector2D SwingGap = FVector2D(0.45f, 0.85f);
-	UPROPERTY(EditAnywhere, Category = "Ally|Fight", meta = (Units = "s")) float ComboRest = 1.2f;
+	UPROPERTY(EditAnywhere, Category = "Ally|Fight") FVector2D SwingGap = FVector2D(0.7f, 1.2f);
+	UPROPERTY(EditAnywhere, Category = "Ally|Fight", meta = (Units = "s")) float ComboRest = 1.6f;
 	/** The hit lands this long into the swing clip (as the player's HitDelay). */
 	UPROPERTY(EditAnywhere, Category = "Ally|Fight", meta = (Units = "s")) float HitDelay = 0.12f;
 	/** Chance a bolt arriving in the front arc is turned aside (no damage), and the rest between two. */
