@@ -14,6 +14,7 @@
 #include "TriadDrift/Flight/TDSpacecraft.h"
 #include "TriadDrift/Ground/TDEnergyBladeComponent.h"
 #include "TriadDrift/Ground/TDFirstPersonCharacter.h"
+#include "TriadDrift/Input/TDSpacePlayerController.h"
 #include "TriadDrift/Ground/Planets/TDPlanetProps.h"
 #include "TriadDrift/Ground/Planets/TDPlanetCourse.h"
 #include "TriadDrift/Ground/Crew/TDCrewCharacter.h"
@@ -21,6 +22,21 @@
 #include "TriadDrift/UI/TDFlightHUDWidget.h"
 #include "Brushes/SlateRoundedBoxBrush.h"
 #include "TriadDrift/UI/TDUIHostSubsystem.h"
+
+namespace
+{
+	// Current ground bindings are E / pad X (interact) and RMB / pad LT (block).
+	// Adapt explicit key tokens only; never alter stored objective or designer prose.
+	FString TDGroundInputText(FString Text, bool bGamepad)
+	{
+		if (bGamepad)
+		{
+			Text.ReplaceInline(TEXT("[E]"), TEXT("[X]"), ESearchCase::CaseSensitive);
+			Text.ReplaceInline(TEXT("[RMB]"), TEXT("[LT]"), ESearchCase::CaseSensitive);
+		}
+		return Text;
+	}
+}
 
 void UTDGroundHUDWidget::NativeConstruct()
 {
@@ -117,6 +133,8 @@ void UTDGroundHUDWidget::HandleDeflect(AActor* Projectile, bool bPerfect)
 void UTDGroundHUDWidget::Sample(float DeltaSeconds)
 {
 	APlayerController* PC = GetOwningPlayer();
+	const ATDSpacePlayerController* SpacePC = Cast<ATDSpacePlayerController>(PC);
+	const bool bGamepad = SpacePC && SpacePC->IsUsingGamepad();
 	APawn* Pawn = PC ? PC->GetPawn() : nullptr;
 	BindPawn(Pawn);
 	const ITDHUDData* Data = Cast<ITDHUDData>(Pawn);
@@ -125,12 +143,13 @@ void UTDGroundHUDWidget::Sample(float DeltaSeconds)
 		View.Health = Data->GetHealth01();
 		View.Block = Data->GetBlockStamina01();
 		View.Dash = Data->GetDashCharges();
-		View.Objective = Data->GetObjectiveText().ToString();
-		View.Prompt = Data->GetInteractPrompt().ToString();
+		// Resample raw text each frame: same-text device changes and pawn rebinds refresh immediately.
+		View.Objective = TDGroundInputText(Data->GetObjectiveText().ToString(), bGamepad);
+		View.Prompt = TDGroundInputText(Data->GetInteractPrompt().ToString(), bGamepad);
 	}
 	if (!ForceObjective.IsEmpty())
 	{
-		View.Objective = ForceObjective;
+		View.Objective = TDGroundInputText(ForceObjective, bGamepad);
 	}
 	if (const ATDFirstPersonCharacter* Character = Cast<ATDFirstPersonCharacter>(Pawn))
 	{
