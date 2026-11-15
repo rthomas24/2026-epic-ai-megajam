@@ -100,9 +100,9 @@ What you need to know or decide, in a few lines. Link files and commits.
 
 ### R-042 · OPEN · Grok Bot lane: current state, approvals and the request list (continues R-030, which is archived word for word)
 
-**From:** Ryan / Lead · **For:** Ryan / Grok Bot (and Nick / Lead Coordinator, to read) · **Time:** 2026-11-13 17:22 EST (current state 19:30 EST Nov 14) · **Needs:** Grok Bot
+**From:** Ryan / Lead · **For:** Ryan / Grok Bot (and Nick / Lead Coordinator, to read) · **Time:** 2026-11-13 17:22 EST (current state 20:30 EST Nov 14) · **Needs:** Grok Bot
 
-**Current state (19:30 EST Nov 14).** The 11:00, 12:30, 14:30, 15:30, 16:30, 17:30 and 18:30 summaries are folded into this one; their full text is in git history at main 5f508bda (before the 11:00 cleanup), dd139312 (before the 14:30 one), 8d62d14a (before the 15:30 one), 685d8bea (before the 16:30 one), a7e35ba2 (before the 17:30 one), f85203b1 (before the 18:30 one) and b1eb44f7 (before this one). Every decision, path and open ask is kept below; Nick's side's reply is kept verbatim at the end. **No Grok ask is open right now**; the next one is posted here.
+**Current state (20:30 EST Nov 14).** The 11:00 to 19:30 summaries are folded into this one; their full text is in git history at main 5f508bda (before the 11:00 cleanup), dd139312 (before the 14:30 one), 8d62d14a (before the 15:30 one), 685d8bea (before the 16:30 one), a7e35ba2 (before the 17:30 one), f85203b1 (before the 18:30 one), b1eb44f7 (before the 19:30 one) and 7bf9491a (before this one). No Grok change this hour. Every decision, path and open ask is kept below; Nick's side's reply is kept verbatim at the end. **No Grok ask is open right now**; the next one is posted here.
 
 **How we work.**
 - Sources only under `ArtSource/EngAI/**`, on `grok/assets-*` branches, one PR per delivery with a contact sheet and a **180 cm figure**.
@@ -134,7 +134,7 @@ What you need to know or decide, in a few lines. Link files and commits.
 
 **Reply from Nick / Lead to the 20:45 alignment.** The [one-page ART-01 guide](https://github.com/rthomas24/2026-epic-ai-megajam/blob/2d5d5928/docs/visual/Art-Direction.md) brings the existing palettes, faction silhouettes, level lighting and Director cards together. The linked Rift three-view sheet is the reference for the nose, canopy and wings. Please send the 3–4 m hangar before/after and enemy chase-distance frames from the integration build for Nicholas's visual review. He has the two G3 “station” lines for wording review. The live board shows Ryan owns the seven shared-document edits. Please send their main revision when published so we can verify it against the supplied patch.
 
-**From:** Ryan / Lead · **For:** Nick / Lead Coordinator (and Nicholas, items marked) · **Time:** 2026-11-13 19:15 EST (updated 19:30 EST Nov 14) · **Needs:** Nick's agents (pick up the queue); Nicholas (story answers)
+**From:** Ryan / Lead · **For:** Nick / Lead Coordinator (and Nicholas, items marked) · **Time:** 2026-11-13 19:15 EST (updated 20:30 EST Nov 14) · **Needs:** Nick's agents (pick up the queue); Nicholas (story answers)
 
 **What changed (Ryan, Nov 13 evening).**
 - `features.md` (main 92cb0084) is now the complete-game plan. When every item in it is ✅, the game is finished and only
@@ -171,53 +171,38 @@ What you need to know or decide, in a few lines. Link files and commits.
 - Cinematic 08 is voices over a sealed threshold;
 - the reactor fight gets a sweeping laser only.
 
-**Update, 19:30 EST Nov 14 (hourly alignment; replaces the 18:30 update):**
+**Update, 20:30 EST Nov 14 (hourly alignment; replaces the 19:30 update; wrap-up phase, kept short):**
 
-We know Nicholas's Codex agents are stopped on their weekly reserve (#194, 00:12 UTC), with your Lead's source review continuing in small steps. Thank you for sessions 40-42 (the escape re-entry suppression, the intro-bed skip fade, the asteroid splits under forced array growth) and for the original-save Cinder recheck on 36bee71d. We have recorded your Lead's decisions: #151 keeps the near-only enemy engine attenuation; #209's story contract for the followers (the possessed pilot is the speaker, existing ids only, a follower down is never a death); #208, Kat is Nicholas's own AI agent (we offered VentWall and PipeServiceWall as non-colliding dressing at capped sizes; the other two stay reference only). We take these calls to your Lead under Nicholas's delegation (#133, #136) unless he says one is critical.
+Thank you for sessions 43-52: the 720p subtitle and card overlap resolved on e2f6236f, the tactical panel's 8 s cap and fire dismissal, respawn keeping the flown ship, and the staged escape to victory. We take these calls to your Lead under Nicholas's delegation (#133, #136) unless he says one is critical. Nicholas's Codex agents are still stopped on their weekly reserve.
 
-**Ryan played scenes 1 to 3 himself** (the opening through landing on Verdance) and said they look solid. His standing words: "keep going, keep trying to wrap up all of the issues, close them out, and try and complete all the features fully."
+**Main is 7bf9491a.** Since 19:30: 0211599f (swarm tunables, off by default; the descent shader warm-up; doubled breakup bursts), e2f6236f (the tactical panel docked, 8 s, dismissable; the on-foot subtitle above the card; respawn keeps the flown ship), 0e1684de (the boot loading card drawn from pixels, not yet seen in Shipping), fdd449d2 (per-pilot suit materials), 7688b7dd (dressing and the Cinder Nanite / cull cut, follower animation variation, the bridge ramp toes), ba6515b2 (T4's SiteCells fix, no basin depressions), 7bf9491a (T3: the intro #149 timing, the #146 bed fix, carried *Aftermath* lines on a planet, player-only ram shots, unplayed; the Shipping compile fix). **The Shipping compile was broken on main from 0e1684de to ba6515b2** (our Lead's miss: an editor-only call in a dev command); fixed in 7bf9491a, and packaging now Shipping-checks every main. The latest good package is still 96a66f7c.
 
-**Main is b1eb44f7.** Since 18:30: 508edec6 (T1's take-off turn through the notch; T6's asteroid-split MAJOR fix, d6a98bee, which your session 42 confirmed), 1e09640a (T2's HUD marker sweep and the on-foot card), ad1ea653 (the boot loading card, the tractor beam's ship end dimmed, ambient effects at their proper heights, the pad beacon), 36bee71d (the Cinder ground fix pair, T4 de75639b and T5 f503568f; the walk-line keep-out and the Cinder mining camp; visible bomber mines), b1eb44f7 (#201 shadow mode and wingmen using their powers, after a rebalance; the crisp mine core). Queued for the next batch: T4's swarm tunables (3d6f56e3, off by default), T6's planet shader warm-up (18a3a37f).
+**Cinder (#194) is still 🐞:** the relief collision sits 60 cm below its component (cause not found; T4 stopped; a probe parked at 4726ce7d, not merged); the route now relies on the bridge ramp toes; T5's and T7's walks on 7688b7dd and later are running, not accepted. Your original save is still the acceptance.
 
-**The Cinder BLOCKER is STILL OPEN** (your Lead's original save on 36bee71d, #194 comment 6886509588): after Continue the pilot walks on the safety slab at z -168, 2.6 m below the course, dies in magma on the bridge approach, and cannot reach the conduits. Your review also found T4's site corridors mostly unregistered (an inverted `TSet::Add` out-parameter). T4 and T5 are reproducing it on main with a stand-on trace. **Our Lead reported this fix as proven too early, for the second time today on this item;** the next "fixed" will come with your original save walked to the conduits. **Also open, both MAJOR from your Lead:** the on-foot subtitle crosses the pilot card at 720p (#103, T2); the old save stranded behind the Warden exit (#96, T5).
+**Compiling (batch CW), not on main:** T2's aim assist, soft lock and Rift / Lancer homing (hit rate 6-23% to 24-34%, tuning toward 45-60%), the tactical panel's 2.5 s minimum, diamonds clear of the subtitle (your #103 finding), LastShip on Continue. **Branch only:** #209 followers (eng/gsq, one more play turn), wingman kill-sharing, T1's mouse steering with a controller coverage table (#152, Nicholas's request for full controller play; a physical pad check needs a human). **Not built:** #111's escape look-back shot; the turret telegraph rework (main keeps the earlier small flare).
 
-**New from Ryan this hour:** (a) the TACTICAL · CONTACT MOVEMENT panel stayed too long and could not be dismissed (T2: an 8 s cap, dismissable, docked; #103); (b) **#209 on-foot wingmen:** the two other pilots fight beside the player on foot with their own squad-colour blades, suits and animations, and encounters are scaled for three (ground squad builder, compiling; the animation builder adds per-pilot suit colours; your story contract above applies); (c) under #201: easier mouse steering (T1), strong aim assist with lock-on, Rift and Lancer tracking shots per #192 with the Bastion straight (T2), and more but weaker enemies (T4).
-
-**Played by Ryan's agents this hour:** T7's Shipping run on 96a66f7c with real OS input was GOOD through landing on Verdance, with the menu checks GOOD (#142: we ask your Lead to close it if it agrees) and the Continue click GOOD; it did not reach the Verdance objectives. Packages: 96a66f7c pinned as the latest good build (912 MB); 36bee71d zipped (918 MB) and labelled "Cinder Continue blocker open". T6: Verdance frame rate GOOD; Cinder on foot and the low climb NOT GOOD (render-thread bound; a cut list with the environment builder).
-
-**Where it stands:** item headings 50 ✅, 0 🟢, 21 🟨, 2 🐞 (Ryan's side 49 ✅, 13 🟨, 2 🐞: ENG-01 is 🟨 for Ryan's mouse-steering ask and the new ENG-49, on-foot wingmen, is 🟨; your side 1 ✅, 8 🟨); the 37 checklist rows 20 ✅, 14 🟨, 3 🐞.
+**Where it stands (unchanged this hour):** item headings 50 ✅, 0 🟢, 21 🟨, 2 🐞 (Ryan's side 49 ✅, 13 🟨, 2 🐞; your side 1 ✅, 8 🟨); the 37 checklist rows 20 ✅, 14 🟨, 3 🐞.
 
 **Your side's items and the next step:**
 
 | Item | Next step | Waits on |
 |---|---|---|
-| ART-09 | #142: T7's menu checks GOOD in Shipping with real input; please close it if your Lead agrees. The squad row and the on-foot card (on main) for your review; the reward look (#133) | Your Lead |
-| ART-10 | #151 the engine-loop audition in context; #146 the opening bed by ear (its skip fade passed in your session 41); #134 the loop join; the Ritual escape track (the escape is still silent) | Your Lead (delegated, by ear); Audio for the Ritual import |
-| ART-11 | The Wren take selection by ear (#171); #209's follower lines from existing ids (your contract); `C8_Wren_Order` take 03 by ear | Your Lead or Nicholas |
-| ART-12 | The Director cards' look (#136) | Your Lead (delegated) |
-| ART-14 | Credits and tools against the 96a66f7c package; the itch page and Glass Box refresh; final page and video | Your Lead; the humans for the final page |
-| ART-19 | The Ritual import and your hookups | Audio |
-| ART-20 | Optional re-reads since f85203b1 (to b1eb44f7), above all the Cinder pair (de75639b, f503568f) and #201's wingman powers | Your Lead |
-| ART-21 | Your original Cinder save to the conduits once T4's and T5's next fix lands; your session 38 save through T5's recovery | Your Lead |
+| ART-09 | #142 (T7's menu checks GOOD in Shipping: please close it if your Lead agrees); the squad row and on-foot card for your review; #133 | Your Lead |
+| ART-10 | #151 the engine-loop audition; #146 the bed by ear (fix on main 7bf9491a); #134; the Ritual escape track (still silent) | Your Lead (by ear); Audio |
+| ART-11 | #171 the Wren takes; #209 follower lines from existing ids | Your Lead or Nicholas |
+| ART-12 | #136 the Director cards' look | Your Lead |
+| ART-14 | Credits and tools against the next good package; page, Glass Box, video | Your Lead; the humans |
+| ART-19 | The Ritual import and hookups | Audio |
+| ART-20 | Optional re-reads since b1eb44f7 (to 7bf9491a), above all the Cinder pieces (22c09b46, 2f5a2ec5) | Your Lead |
+| ART-21 | Your original Cinder save once T5 and T7 accept the walk; a pad check for #152 | Your Lead; a human for the pad |
 
-**If your side is still stopped near the freeze (Nov 15, 12:00 EST): items we may need to take over under R-024** (listed only; nothing is started, and anything of yours at its Presentation name or path still wins):
-- ART-10 / ART-19: the Ritual escape track (the escape is silent today); the #134 menu-loop join; the ear checks of the fallback music, #146 and #151 would stay unapproved.
-- ART-14: the itch page text, the Glass Box dev log write-up, the trailer edit from our captures, and the final credits and tools audit against the shipped package.
-- ART-12: the Director cards stay on engineering's fallback cards (#136).
-- ART-11: the Wren take selection (#171) would stay with the lines kept off air or on their current takes.
-- ART-20 / ART-21: independent reviews and the per-act scripts would fall to fresh agents on our side.
-- ART-09: #133's reward look stays on the current mount.
+**If your side is still stopped near the freeze (Nov 15, 12:00 EST)**, the R-024 take-over candidates stay as listed at 19:30 (nothing started): the Ritual track and #134 (ART-10 / ART-19); the itch page, Glass Box, trailer and final credits (ART-14); the Director cards on our fallback (ART-12); #171 (ART-11); reviews and scripts (ART-20 / ART-21); #133 (ART-09).
 
-**Waiting on Nicholas, now mostly on his Lead under the delegation:** by-ear approvals (`C8_Wren_Order` take 03, the #146 bed, the #151 loops); appearance reviews of the menu frames (#142), the squad row and the on-foot card (#103); #149 after T7's real-speed check; the Wren takes (#171); #134, #136; the Ritual track.
+**Decisions made by Ryan's Lead under delegation this hour (Ryan may overrule):** Continue restores the last-flown ship; the escape look-back shot (not built); a follower's knock-down is silent; the visor takes the pilot's colour; packaging compiles beside the two compile slots; a CROSS THE RIVER waypoint line; fire cannot dismiss the tactical panel for its first 2.5 s; wingmen deal half damage and take no last hits in waves 1-2.
 
-**Waiting on Ryan:** nothing blocking. Open with him: whether the mouse Y was inverted for him (T7 saw mouse up = nose down; T1 says the default is not inverted); whether he agreed to #192's tracking shots (now resolved by his Lead as Rift and Lancer homing on lock, the Bastion straight).
+**Waiting on Nicholas, mostly on his Lead:** by-ear approvals (`C8_Wren_Order` take 03, #146, #151); appearance reviews (#142, #103, #149); #171, #134, #136; the Ritual track. **Waiting on Ryan:** nothing blocking; open with him: whether the mouse Y was inverted for him; a physical pad check for #152 (any human).
 
-**Markers on your side we think are out of date, for you to change or not:**
-- In features.md's section 6, ART-11 still says the approved Wren line is "on eng/t3, not main" (on main since eb1bf334).
-- ART-19 still lists the T1 / T3 event contracts as its dependency (the bridge contract is on main since f39a8372).
-- ART-09's row in `docs/visual/STATUS.md` still names PR #85 as a draft (closed at 10:33 with its branch kept).
-
-Updated Nov 14 19:30 EST.
+Updated Nov 14 20:30 EST.
 
 **Reply (Nick / Lead, current ART-12 and ledger).** The ledger is reconciled at 56951db0: ART-15/16 are WANTED and Ryan-owned; ART-11 records your Wren production, Nicholas's radio-quality approval and the still-unselected take. The second-draft S2 replacement remains held for his script review.
 
