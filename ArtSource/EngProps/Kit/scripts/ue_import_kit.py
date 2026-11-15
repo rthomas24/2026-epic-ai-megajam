@@ -415,7 +415,7 @@ def configure_bridge():
     """Walkable crossings (export_bridge: SM_Kit_MagmaBridge): the planet trim in Props/Kit, no screen, no extras;
     only the bridge's own manifest is imported, its report in review/ue_import_bridge.json."""
     global SIZE_CHECK, SCREEN_MI
-    SIZE_CHECK = os.path.join(KIT, "review", "size_check_B_r1.json")
+    SIZE_CHECK = os.path.join(KIT, "review", "size_check_B_r2.json")
     SCREEN_MI = None
     SET.update({"export": "export_bridge", "extras": False, "report": "ue_import_bridge.json"})
 

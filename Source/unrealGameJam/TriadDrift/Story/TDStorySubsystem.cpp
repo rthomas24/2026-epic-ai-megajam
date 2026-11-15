@@ -353,7 +353,10 @@ namespace TDStory
 			// The layout's scale follows the viewport; the text also follows the player's subtitle size (T1's setting:
 			// Small 0.8, Medium 1, Large 1.3). Agent Feedback Batch 2, B2-02: the size setting changed nothing here.
 			const float Scale = Size.Y / 1080.f;
-			const float TextScale = Scale * UTDSettingsSubsystem::GetSubtitleScale(S);
+			// TD.UI.SubtitleScale (T2's dev override for captures, 0 = off) forces Small / Medium / Large here too.
+			static IConsoleVariable* ForcedVar = IConsoleManager::Get().FindConsoleVariable(TEXT("TD.UI.SubtitleScale"));
+			const float Forced = ForcedVar ? ForcedVar->GetFloat() : 0.f;
+			const float TextScale = Scale * (Forced > 0.f ? Forced : UTDSettingsSubsystem::GetSubtitleScale(S));
 			const FSlateFontInfo TagFont = FCoreStyle::GetDefaultFontStyle(TEXT("Bold"), FMath::Max(8, FMath::RoundToInt(17.f * TextScale)));
 			const FSlateFontInfo LineFont = FCoreStyle::GetDefaultFontStyle(TEXT("Regular"), FMath::Max(9, FMath::RoundToInt(22.f * TextScale)));
 			const FText TagText = FText::Format(LOCTEXT("TagFmt", "{0}  "), V.SpeakerTag);
@@ -400,7 +403,12 @@ namespace TDStory
 			// under his the line goes just below his objective block at the top. A wrapped block grows away from the
 			// screen edge: up from the lower lane's line, down from the upper one's.
 			const bool bNickHUD = UTDUIHostSettings::GetSpaceHUDChoice() == ETDSpaceHUDChoice::Nick;
-			const float AnchorY = Size.Y * (bNickHUD ? 0.17f : 0.83f);
+			float AnchorY = Size.Y * (bNickHUD ? 0.17f : 0.83f);
+			// T2 (#103, Nick's Lead at 720p): on foot the band ends above the pilot card and its flags.
+			if (!bNickHUD)
+			{
+				AnchorY = FMath::Min(AnchorY, Size.Y * UTDUIHostSubsystem::GetSubtitleCeiling01(S) - Pad.Y - LineH * 0.5f);
+			}
 			FVector2D Pos(Size.X * 0.5f - W * 0.5f, bNickHUD ? AnchorY - LineH * 0.5f : AnchorY + LineH * 0.5f - H);
 			float A = V.Alpha;
 			if (V.Style == ETDTransmissionStyle::Static)
@@ -411,6 +419,10 @@ namespace TDStory
 				Pos.X += (Noise - 0.5f) * 3.f * Scale;
 			}
 			const FSlateBrush* White = FCoreStyle::Get().GetBrush(TEXT("WhiteBrush"));
+			if (Size.X > 0.f && Size.Y > 0.f)
+			{
+				UTDUIHostSubsystem::NoteSubtitlePlate01(FBox2D((Pos - Pad) / Size, (Pos + FVector2D(W, H) + Pad) / Size), FPlatformTime::Seconds());
+			}
 			FSlateDrawElement::MakeBox(Out, Layer, Geo.ToPaintGeometry(FVector2D(W, H) + Pad * 2.f, FSlateLayoutTransform(Pos - Pad)),
 				White, ESlateDrawEffect::None, FLinearColor(0.f, 0.f, 0.f, 0.55f * A));
 			FLinearColor TagColor = V.Color;

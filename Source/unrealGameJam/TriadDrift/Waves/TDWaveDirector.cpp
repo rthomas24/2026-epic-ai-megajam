@@ -179,6 +179,19 @@ TArray<FTDWaveDef> ATDWaveDirector::MakeDefaultWaves()
 		W.bRevealsDominion = true;
 		Out.Add(W);
 	}
+	// #201 (Ryan, Nov 14): the swarm tuning: about half again as many fighters and interceptors in waves 1-4 (lighter each,
+	// UTDEnemyLibrary::ApplySwarm). Wave 5 keeps its counts and the carriers' screen hold.
+	if (UTDEnemyLibrary::IsSwarm())
+	{
+		for (int32 i = 0; i < Out.Num() && i < 4; ++i)
+		{
+			for (FTDWaveGroup& G : Out[i].Groups)
+			{
+				if (G.EnemyId == ShardFighter) { G.PerPack += FMath::Max(1, FMath::RoundToInt(G.PerPack * 0.5f)); }
+				else if (G.EnemyId == HookInterceptor) { G.Packs += FMath::Max(1, FMath::RoundToInt(G.Packs * 0.5f)); }
+			}
+		}
+	}
 	return Out;
 }
 

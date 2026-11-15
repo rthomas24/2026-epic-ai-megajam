@@ -24,6 +24,9 @@
 #include "TriadDrift/UI/TDGroundHUDWidget.h"
 #include "TriadDrift/UI/TDFlightHUDWidget.h"
 #include "TriadDrift/UI/TDTacticalDisplayWidget.h"
+#include "TriadDrift/Story/TDStorySubsystem.h"
+#include "TriadDrift/Input/TDSpacePlayerController.h"
+#include "InputCoreTypes.h"
 #include "TriadDrift/UI/TDScanMonitorWidget.h"
 #include "TriadDrift/UI/TDRewardAnnouncementWidget.h"
 #include "TriadDrift/Travel/TDDescentSubsystem.h"
@@ -156,6 +159,7 @@ void UTDUIHostSubsystem::Tick(float DeltaTime)
 	{
 		TacticalPhase = -1;
 	}
+	UpdateTacticalDismiss();
 	if (const UTDTacticalDisplayWidget* Display = Cast<UTDTacticalDisplayWidget>(TacticalWidget); Display && Display->IsFinished())
 	{
 		TacticalWidget->RemoveFromParent();
@@ -397,6 +401,71 @@ void UTDUIHostSubsystem::SetCinematicHidden(bool bHidden)
 	Evaluate();
 }
 
+FBox2D UTDUIHostSubsystem::LastSubtitlePlate01(ForceInit);
+double UTDUIHostSubsystem::LastSubtitlePlateTime = -1.0;
+
+float UTDUIHostSubsystem::GetSubtitleCeiling01(const UObject* WorldContext)
+{
+	const UTDUIHostSubsystem* Host = Get(WorldContext);
+	const UTDGroundHUDWidget* Ground = Host ? Cast<UTDGroundHUDWidget>(Host->GroundWidget) : nullptr;
+	return Ground && Ground->IsInViewport() && Ground->IsVisible() ? Ground->SubtitleCeiling01 : 1.f;
+}
+
+void UTDUIHostSubsystem::UpdateTacticalDismiss()
+{
+	UTDTacticalDisplayWidget* Display = Cast<UTDTacticalDisplayWidget>(TacticalWidget);
+	if (!Display || Display->IsDismissing() || Display->IsFinished())
+	{
+		return;
+	}
+	APlayerController* PC = FindLocalController();
+	const ATDSpacePlayerController* SpacePC = Cast<ATDSpacePlayerController>(PC);
+	const bool bPad = SpacePC && SpacePC->IsUsingGamepad();
+	Display->DismissKey = bPad ? TEXT("B") : TEXT("X");
+	// Ryan (Nov 14): fire, boost, power, ability, switch, hyperdrive, or the skip / back key close it at once. It never
+	// takes input: the keys still do their own job (polled, not consumed).
+	static const FKey Keys[] = {
+		EKeys::X, EKeys::BackSpace, EKeys::LeftMouseButton, EKeys::RightMouseButton, EKeys::LeftShift, EKeys::Q, EKeys::E,
+		EKeys::Tab, EKeys::One, EKeys::Two, EKeys::Three, EKeys::H, EKeys::Escape,
+		EKeys::Gamepad_FaceButton_Right, EKeys::Gamepad_RightShoulder, EKeys::Gamepad_LeftShoulder, EKeys::Gamepad_LeftThumbstick,
+		EKeys::Gamepad_FaceButton_Left, EKeys::Gamepad_FaceButton_Top, EKeys::Gamepad_DPad_Left, EKeys::Gamepad_DPad_Right,
+		EKeys::Gamepad_DPad_Down, EKeys::Gamepad_DPad_Up, EKeys::Gamepad_Special_Right };
+	bool bClose = false;
+	if (PC)
+	{
+		for (const FKey& Key : Keys)
+		{
+			if (PC->WasInputKeyJustPressed(Key))
+			{
+				bClose = true;
+				break;
+			}
+		}
+	}
+	// ... and by itself the moment a hyperdrive spool starts or the objective changes.
+	if (const ITDHUDData* Data = Cast<ITDHUDData>(DataSource.Get()))
+	{
+		const FString Objective = Data->GetObjectiveText().ToString();
+		if (!bTacticalObjectiveKnown)
+		{
+			TacticalObjective = Objective;
+			bTacticalObjectiveKnown = true;
+		}
+		else if (Objective != TacticalObjective)
+		{
+			bClose = true;
+		}
+		if (Data->GetHyperdriveCharge01() > .01f)
+		{
+			bClose = true;
+		}
+	}
+	if (bClose)
+	{
+		Display->Dismiss();
+	}
+}
+
 bool UTDUIHostSubsystem::ShowTacticalDisplay(const UObject* WorldContext, float Seconds)
 {
 	UTDUIHostSubsystem* Host = Get(WorldContext);
@@ -420,7 +489,11 @@ bool UTDUIHostSubsystem::ShowTacticalDisplay(const UObject* WorldContext, float 
 			Display->AddToViewport(UTDUIHostSettings::Get()->ZOrder + 50); // over the HUD and a cinematic, under menus
 		}
 	}
-	Display->Play(Seconds);
+	// Never blocks input or takes focus (Ryan: "I couldn't remove it").
+	Display->SetVisibility(ESlateVisibility::HitTestInvisible);
+	Display->SetIsFocusable(false);
+	Host->bTacticalObjectiveKnown = false;
+	Display->Play(FMath::Min(Seconds, UTDTacticalDisplayWidget::MaxSeconds));
 	return true;
 }
 
@@ -1326,6 +1399,17 @@ namespace TDUIHost
 		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
 		{
 			UTDUIHostSubsystem::ShowTacticalDisplay(World, Args.Num() > 0 ? FCString::Atof(*Args[0]) : 20.f);
+		}));
+	FAutoConsoleCommandWithWorldAndArgs CmdTDUICaption(TEXT("TD.UI.Caption"),
+		TEXT("TD.UI.Caption <seconds> <text...>: show any line as a Command caption through the story's own subtitle path (dev: layout captures with long lines)."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			if (Args.Num() < 2)
+			{
+				return;
+			}
+			TArray<FString> Rest(Args.GetData() + 1, Args.Num() - 1);
+			UTDStorySubsystem::ShowBarkCaption(World, TEXT("Command"), FString::Join(Rest, TEXT(" ")), FCString::Atof(*Args[0]));
 		}));
 
 	FAutoConsoleCommandWithWorldAndArgs CmdTDUIScan(TEXT("TD.UI.Scan"),

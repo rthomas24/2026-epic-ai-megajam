@@ -15,6 +15,7 @@
 #include "TriadDrift/Ground/TDPilotAnim.h"
 #include "TriadDrift/Ground/TDFirstPersonCharacter.h"
 #include "TriadDrift/Core/TDStatics.h"
+#include "Materials/MaterialInterface.h"
 
 namespace TDPilotAnimDebug
 {
@@ -164,6 +165,16 @@ namespace TDPilotAnimDebug
 		else if (What.Equals(TEXT("Board"), ESearchCase::IgnoreCase)) { Len = P->StartShipTransition(true, Hatch); }
 		else if (What.Equals(TEXT("Interact"), ESearchCase::IgnoreCase)) { P->DebugPlayBodyAction(TEXT("A_Pilot_Interact_Console"), 1.f, true); }
 		else if (What.Equals(TEXT("Clip"), ESearchCase::IgnoreCase) && Args.Num() > 1) { P->DebugPlayBodyAction(FName(*Args[1]), 1.f, false); }
+		else if (What.Equals(TEXT("Suit"), ESearchCase::IgnoreCase) && Args.Num() > 1)
+		{
+			// Dev (issue #209 review): put a suit instance on the pilot's body, e.g. TD.Pilot.Act Suit MI_Pilot_Kato
+			const FString Path = FString::Printf(TEXT("/Game/TriadDrift/Gameplay/Characters/Pilot/%s.%s"), *Args[1], *Args[1]);
+			if (UMaterialInterface* Mat = LoadObject<UMaterialInterface>(nullptr, *Path))
+			{
+				for (int32 i = 0; i < P->GetMesh()->GetNumMaterials(); ++i) { P->GetMesh()->SetMaterial(i, Mat); }
+			}
+			UE_LOG(LogTemp, Display, TEXT("TD.Pilot.Act Suit %s"), *Path);
+		}
 		else if (What.Equals(TEXT("ShowCameraBlade"), ESearchCase::IgnoreCase)) { P->DebugShowCameraBlade(); }
 		else if (What.Equals(TEXT("Die"), ESearchCase::IgnoreCase))
 		{

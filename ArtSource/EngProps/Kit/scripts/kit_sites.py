@@ -613,7 +613,7 @@ def magma_bridge():
             "about": "Cinder magma bridge (walkable kit, exact collision): 2800 x 370 cm overall, deck top 50 cm, walk width 300 cm.",
             "pieces": [piece("Bridge", "SM_Kit_MagmaBridge", 0.0, 0.0, 0.0)],
             "footprint_cm": {"x": [-1400, 1400], "y": [-185, 185]}, "deck_top_z": 50, "walk_width_cm": 300,
-            "ramp_feet_site_cm": [[-1400, 0, 0], [1400, 0, 0]], "deck_x_cm": [-1200, 1200],
+            "ramp_feet_site_cm": [[-1400, 0, 0], [1400, 0, 0]], "ramp_toes_site_cm": [[-1640, 0, -60], [1640, 0, -60]], "deck_x_cm": [-1200, 1200],
             "placement_rules": ["Pivot at the river's centre line on the conduit route, Z = the bank ground; yaw so +X runs along the route.",
                                 "Both ramp feet (x +-1400) on dry ground: the magma channel must lie within x -1200..1200 (24 m deck).",
                                 "The piers (x +-400, down to -150) stand in the magma; nothing else under the deck."]}}
