@@ -201,3 +201,33 @@ the reticle follow the ship: `VirtualStick -= ship angular rate * dt / ReticleFu
 debugging before it ships: in its one test the stick capped at 0.11-0.15 and the Lancer ran on for 3 s after the hand
 stopped, so clamp the stick and look at the run-on. Medium weight (C++ compile, then the probe offscreen). If there is
 no time, leave steering as it is: aim assist (on main) carries most of "easier to hit".
+
+## 9. Final state after the last verification round (Ryan's Lead, 23:10 EST) — read this before sections 3.1 and 7
+
+Sections 3.1 and 7 were written at 21:35. Since then Ryan's Lead ran one more round of plays and fixes from the
+integration checkout. **Main source is now `f2237462`** (compiles for the editor; a Shipping package of it is being
+cooked and will be published as a prerelease `playable-main-<sha>`; see the board, R-050, for the link).
+
+**Cinder now runs from the pad to boarding the ship** in agent walks with real key input (T5, T7), in pieces:
+survey, Continue, door, river and bridge, both conduits by blade, the yard, barracks, dig, Warden and crystals, out of
+the compound door by door and through the gate, back over the river, the field anchor course, the three charges, the
+collapse, RETURN TO YOUR SHIP, the shore and boarding (line TAKE OFF, CLIMB TO ORBIT). Fixes that made it so, all on
+main: compound room doors stand open once the excavation is complete (also after a Continue); the idle marker leads
+out of the compound through its doorways and gate and takes the river crossing; two steps up to the first slab of the
+crystal bridge; the close-range interact reaches 3.5 m (the south-west anchor charge is 3.3 m from the nearest stand).
+- **Still unproven by a continuous run:** the crystal bridge (the slabs fall 1.1 s after being stepped on; the scripted
+  walker stops and re-aims, so it never crossed; a player who runs straight across should; check it once by hand or
+  with one held W). The third charge was planted from the ground on `f2237462` (T7's log: 2/3 then the return
+  countdown).
+- Fights on Cinder were put down with `TD.Ground.CrewKill` in these walks; no walk fought them all.
+- The ground's collision is still 60 cm low; nothing now depends on fixing it. Do not move it without re-walking both
+  planets.
+- #194 stays open only for: one natural run of the crystal bridge, and Nicholas's Session45 save.
+
+**Continue in the last-flown ship: fixed and proven cold** (`d3825c28`: save in Bastion, quit, relaunch, Continue,
+flying Bastion). **Tactical panel: proven in a natural Aftermath** (shown, gone at 8.01 s). **Wave 1 with shadow on:**
+kills player/wingmen 1/0, wave 2 8/6. **Followers on foot:** walked and fought beside the pilot on Verdance and Cinder.
+**Not seen by any agent:** the aim-assist lock bracket (needs a human hand on the mouse).
+
+**Issues:** closed today from Ryan's side: #209, #149, #130, #103. Every other open issue is assigned to
+@nicholastosti-tech with a handover comment that says what is on main, what is left and which section to read.
