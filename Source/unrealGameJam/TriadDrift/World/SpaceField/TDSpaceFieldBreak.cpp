@@ -548,7 +548,7 @@ namespace TDSpaceFieldDev
 				FRow& R = ByMesh.FindOrAdd(M ? M->GetName() : FString(TEXT("(none)")));
 				++R.Comps; R.Instances += N;
 				if (C->CastShadow) { R.Shadowed += N; TotalShadowed += N; }
-				const bool bNanite = M && M->IsNaniteEnabled();
+				const bool bNanite = M && M->HasValidNaniteData();
 				R.bNanite = bNanite;
 				if (!bNanite) { TotalNonNanite += N; }
 				R.CullEnd = FMath::Max(R.CullEnd, C->InstanceEndCullDistance);
