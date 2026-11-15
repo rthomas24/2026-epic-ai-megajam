@@ -94,6 +94,9 @@ namespace TDFutureCrew
 	void ApplyFuturePalette(USkeletalMeshComponent* Mesh, FName Pilot)
 	{
 		if (!Mesh) { return; }
+		UMaterialInterface* FutureMaster = LoadObject<UMaterialInterface>(nullptr,
+			TEXT("/Game/TriadDrift/Gameplay/Characters/Pilot/M_FuturePilot.M_FuturePilot"), nullptr, LOAD_Quiet | LOAD_NoWarn);
+		if (!FutureMaster) { return; }
 		for (int32 Slot = 0; Slot < Mesh->GetNumMaterials(); ++Slot)
 		{
 			UMaterialInterface* Source = Mesh->GetMaterial(Slot);
@@ -101,8 +104,9 @@ namespace TDFutureCrew
 			// Reuse the authored suit masks. Unrelated/custom materials are not replaced.
 			if (!Source || !Source->GetVectorParameterValue(FMaterialParameterInfo(TEXT("SuitTint")), ExistingTint)) { continue; }
 			// Always create an instance owned by this component; never mutate a shared material or ally MID.
-			if (UMaterialInstanceDynamic* Suit = UMaterialInstanceDynamic::Create(Source, Mesh))
+			if (UMaterialInstanceDynamic* Suit = UMaterialInstanceDynamic::Create(FutureMaster, Mesh))
 			{
+				Suit->CopyMaterialUniformParameters(Source);
 				Suit->SetVectorParameterValue(TEXT("SuitTint"), FLinearColor(0.025f, 0.025f, 0.03f));
 				Suit->SetVectorParameterValue(TEXT("SuitDark"), FLinearColor(0.018f, 0.018f, 0.022f));
 				Suit->SetScalarParameterValue(TEXT("SuitDarkAmount"), 1.f);
